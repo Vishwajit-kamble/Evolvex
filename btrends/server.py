@@ -25,7 +25,7 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 CORS(app, resources={
     r"/api/*": {
         "origins": [
-            "http://localhost:5173/evolvex-code-agentic-ai",
+            "http://localhost:5173/evolvex-business-agentic-ai",
             "http://localhost:5173",
             "https://evolvexai.vercel.app"
         ]
