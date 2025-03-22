@@ -2,20 +2,6 @@ import requests
 from time import sleep
 from together import Together
 import re
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import json
-import csv
-from io import StringIO
-
-app = Flask(__name__)
-
-# CORS configuration
-ENVIRONMENT = "development"  # Change to "development" for local testing
-if ENVIRONMENT == "production":
-    CORS(app, resources={r"/api/*": {"origins": "https://evolvexai.vercel.app"}})
-else:
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
 # --- Configuration ---
 NEWS_API_KEY = "c384894b14684b939f59a4b9c36bc13d"  # Your NewsAPI key
@@ -75,11 +61,13 @@ def analyze_with_together(content, title):
             temperature=0.7
         )
         result = response.choices[0].message.content
+        # Extract JSON from response using regex
         json_match = re.search(r'```json\s*([\s\S]*?)\s*```', result)
         if json_match:
             json_str = json_match.group(1)
         else:
             json_str = re.search(r'\{[\s\S]*\}', result).group(0)
+        import json
         analysis = json.loads(json_str)
         return analysis
     except Exception as e:
@@ -128,28 +116,9 @@ def fetch_business_news(topic):
             "Employment_Opportunity": "N/A"
         }]
 
-@app.route('/api/rag', methods=['POST'])
-def get_news_analysis():
-    data = request.get_json()
-    topic = data.get('topic', '')
-    if not topic:
-        return jsonify({"error": "Topic is required"}), 400
-    
+# Main execution
+if __name__ == "__main__":
+    topic = input("Enter the news topic you want to search for: ")
     analysis_result = fetch_business_news(topic)
-    
-    # Convert to CSV
-    csv_buffer = StringIO()
-    fieldnames = analysis_result[0].keys()
-    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(analysis_result)
-    csv_data = csv_buffer.getvalue()
-    csv_buffer.close()
-    
-    return jsonify({
-        "json": analysis_result,
-        "csv": csv_data
-    })
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=ENVIRONMENT != "production")
+    for result in analysis_result:
+        print(result)

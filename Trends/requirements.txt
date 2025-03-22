@@ -1,5 +1,6 @@
-flask
-flask-cors
 requests
 together
-gunicorn
+Flask
+flask-cors
+jsonlib-python3 
+csv
