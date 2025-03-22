@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { dark } from "react-syntax-highlighter/dist/esm/styles/prism"; // You can choose a different style
 import "./Code.css"; // Import CSS for styling
 
 export const Code = () => {
@@ -25,10 +29,10 @@ export const Code = () => {
       const response = await axios.post(
         "https://evolvex.onrender.com/api/code",
         { input },
-        { timeout: 30000 } // 30-second timeout
+        { timeout: 50000 } // 30-second timeout
       );
       const output = response.data.output || "No output returned.";
-      
+
       // Add output to history
       setHistory((prev) => [...prev, { type: "output", text: output }]);
     } catch (err) {
@@ -42,64 +46,61 @@ export const Code = () => {
     }
   };
 
-  // Function to split text and code blocks
+  // Custom renderer for code blocks using react-syntax-highlighter
   const renderMessage = (text) => {
-    const parts = [];
-    let remainingText = text;
-    let codeBlockIndex = 0;
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]} // Enable GitHub-flavored markdown
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            const language = match ? match[1] : "text"; // Default to plain text if no language specified
 
-    while (remainingText.length > 0) {
-      const codeStart = remainingText.indexOf("```");
-      if (codeStart === -1) {
-        parts.push({ type: "text", content: remainingText });
-        break;
-      }
-
-      // Text before code block
-      if (codeStart > 0) {
-        parts.push({ type: "text", content: remainingText.slice(0, codeStart) });
-      }
-
-      // Find end of code block
-      const codeEnd = remainingText.indexOf("```", codeStart + 3);
-      if (codeEnd === -1) {
-        parts.push({ type: "text", content: remainingText.slice(codeStart) });
-        break;
-      }
-
-      // Extract code block content (without ``` markers)
-      const codeContent = remainingText.slice(codeStart + 3, codeEnd).trim();
-      parts.push({ type: "code", content: codeContent, key: codeBlockIndex++ });
-
-      // Update remaining text
-      remainingText = remainingText.slice(codeEnd + 3);
-    }
-
-    return parts.map((part, index) =>
-      part.type === "code" ? (
-        <pre key={`${part.key}-${index}`} className="code-block">
-          <code>{part.content}</code>
-        </pre>
-      ) : (
-        <p key={index}>{part.content}</p>
-      )
+            return !inline ? (
+              <SyntaxHighlighter
+                style={dark} // Choose your preferred style
+                language={language}
+                PreTag="div" // Use div instead of pre for better styling control
+                className="code-block"
+                {...props}
+              >
+                {String(children).replace(/\n$/, "")}{" "}
+                {/* Remove trailing newline */}
+              </SyntaxHighlighter>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+          p({ children }) {
+            return <p className="text-content">{children}</p>; // Preserve newlines in paragraphs
+          },
+        }}
+      >
+        {text}
+      </ReactMarkdown>
     );
   };
 
   return (
     <div className="Code">
       <h2>EVOLVEX CODE AGENT</h2>
-      <div className="chat-container">
-        {history.map((item, index) => (
-          <div
-            key={index}
-            className={item.type === "input" ? "user-message" : "output-message"}
-          >
-            <strong>{item.type === "input" ? "Input" : "Output"}:</strong>
-            {renderMessage(item.text)}
-          </div>
-        ))}
-      </div>
+      {history.length > 0 && ( // Only show chat container when history has items
+        <div className="chat-container">
+          {history.map((item, index) => (
+            <div
+              key={index}
+              className={
+                item.type === "input" ? "user-message" : "output-message"
+              }
+            >
+              <strong>{item.type === "input" ? "Input" : "Output"}</strong>
+              {renderMessage(item.text)}
+            </div>
+          ))}
+        </div>
+      )}
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSubmit} className="input-form">
         <textarea

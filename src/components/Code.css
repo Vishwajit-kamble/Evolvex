@@ -1,89 +1,66 @@
 .Code {
-  max-width: 800px;
-  margin: 20px auto;
   padding: 20px;
-  font-family: Arial, sans-serif;
-}
-
-h2 {
-  text-align: center;
-  color: #333;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .chat-container {
-  margin-bottom: 20px;
-  max-height: 400px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
+  margin-top: 20px;
+}
+
+.user-message,
+.output-message {
+  margin: 10px 0;
   padding: 10px;
-  background-color: #f9f9f9;
+  border-radius: 5px;
 }
 
 .user-message {
-  background-color: #e3f2fd;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-  word-wrap: break-word;
+  background-color: #f0f0f0;
 }
 
 .output-message {
-  background-color: #f1f8e9;
-  padding: 10px;
-  margin: 10px 0;
-  border-radius: 5px;
-  word-wrap: break-word;
+  background-color: #e0f7fa;
 }
 
 .code-block {
-  background-color: #2d2d2d;
-  color: #fff;
-  padding: 10px;
+  margin: 10px 0;
   border-radius: 5px;
-  margin: 5px 0;
   overflow-x: auto;
 }
 
-.input-form {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  resize: vertical;
-  font-size: 14px;
-}
-
-textarea:disabled {
-  background-color: #eee;
-  cursor: not-allowed;
-}
-
-.submit-btn {
-  padding: 10px;
-  background-color: #1976d2;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.submit-btn.proc {
-  background-color: #666;
-  cursor: not-allowed;
-}
-
-.submit-btn:hover:not(.proc) {
-  background-color: #115293;
+.text-content {
+  white-space: pre-wrap; /* Preserve newlines and wrap text */
+  margin: 5px 0;
 }
 
 .error {
   color: red;
-  text-align: center;
+  margin: 10px 0;
+}
+
+.input-form {
+  margin-top: 20px;
+}
+
+textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.submit-btn {
   margin-top: 10px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.submit-btn.proc {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }

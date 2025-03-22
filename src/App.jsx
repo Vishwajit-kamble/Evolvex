@@ -18,6 +18,7 @@ import mp3 from "./assets/bg.mp3";
 import { Documentation } from "./components/Documentation";
 import { Login } from "./components/Login";
 import { Trend } from "./containers/Trend";
+import { Blog } from "./containers/Blog";
 
 // Create an Auth Context
 const AuthContext = React.createContext();
@@ -139,6 +140,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/blog/:id" element={<Blog />} />
           <Route
             path="/evolvex-documentation"
             element={
