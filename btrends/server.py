@@ -22,7 +22,7 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
 # CORS configuration
 # Always allow localhost:5173/evolvex-business-agentic-ai, and conditionally add production origin
-allowed_origins = ["http://localhost:5173/evolvex-business-agentic-ai"]
+allowed_origins = ["http://localhost:5173/evolvex-business-agentic-ai","http://localhost:5173"]
 if ENVIRONMENT == "production":
     allowed_origins.append("https://evolvexai.vercel.app")
 CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
