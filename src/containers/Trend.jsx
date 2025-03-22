@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bar, Pie, Line } from "react-chartjs-2";
 import {
@@ -474,20 +474,6 @@ export const Trend = () => {
     }
   };
 
-  useEffect(() => {
-    // Initial data fetch
-    fetchBusinessNews(topic);
-    fetchNiftyData();
-
-    // Set up polling with a longer interval to avoid rate limiting
-    const interval = setInterval(() => {
-      fetchBusinessNews(topic);
-      fetchNiftyData();
-    }, 600000); // 10 minutes instead of 5
-
-    return () => clearInterval(interval);
-  }, []); // Remove topic dependency to prevent multiple initial fetches
-
   // Improved chart data preparation
   const prepareSentimentData = () => {
     if (!analysisData.length) {
@@ -752,7 +738,6 @@ export const Trend = () => {
           </div>
         </div>
       </div>
-
       <div className="row2">
         <div className="nif">
           <div className="ni">
@@ -772,7 +757,7 @@ export const Trend = () => {
                 sx={{ cursor: "pointer" }}
               >
                 <ListItemText
-                  primary={
+                    primary={
                     <strong>
                       {aiGeneratedTitles[index] ||
                         article.title ||
