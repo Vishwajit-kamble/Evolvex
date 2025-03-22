@@ -4,22 +4,24 @@ from together import Together
 import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
-import csv
-from io import StringIO
- 
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
 app = Flask(__name__)
 
 # CORS configuration
-ENVIRONMENT = "development"  # Change to "development" for local testing
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")
 if ENVIRONMENT == "production":
     CORS(app, resources={r"/api/*": {"origins": "https://evolvexai.vercel.app"}})
 else:
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
 
 # --- Configuration ---
-NEWS_API_KEY = "c384894b14684b939f59a4b9c36bc13d"  # Your NewsAPI key
-TOGETHER_API_KEY = "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM"  # Your Together AI API key
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
 def fetch_full_content(url, max_retries=3, initial_timeout=40):
     """Use Jina Reader to fetch full content from a URL with retries."""
@@ -80,6 +82,7 @@ def analyze_with_together(content, title):
             json_str = json_match.group(1)
         else:
             json_str = re.search(r'\{[\s\S]*\}', result).group(0)
+        import json
         analysis = json.loads(json_str)
         return analysis
     except Exception as e:
@@ -136,20 +139,7 @@ def get_news_analysis():
         return jsonify({"error": "Topic is required"}), 400
     
     analysis_result = fetch_business_news(topic)
-    
-    # Convert to CSV
-    csv_buffer = StringIO()
-    fieldnames = analysis_result[0].keys()
-    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(analysis_result)
-    csv_data = csv_buffer.getvalue()
-    csv_buffer.close()
-    
-    return jsonify({
-        "json": analysis_result,
-        "csv": csv_data
-    })
+    return jsonify(analysis_result)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000, debug=ENVIRONMENT != "production")

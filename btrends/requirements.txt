@@ -1,5 +1,6 @@
+flask
+flask-cors
 requests
 together
-Flask
-flask-cors
-jsonlib-python3 
+python-dotenv
+gunicorn
