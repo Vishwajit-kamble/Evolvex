@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
 } from "firebase/auth";
+import sorc from "../assets/trends.png";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
@@ -61,35 +62,37 @@ export const Login = () => {
 
   return (
     <div className="login-container">
-      <h2>{isSignUp ? "Sign Up" : "Sign In"}</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          required
-        />
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password"
-          required
-        />
-        <button type="submit">{isSignUp ? "Sign Up" : "Sign In"}</button>
-      </form>
+      <div className="lplt">
+        <h2>{isSignUp ? "SIGN UP" : "SIGN IN"} TO EVOLVEX</h2>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+          />
+          <button type="submit">{isSignUp ? "Sign Up" : "Sign In"}</button>
+        </form>
+        {/* Display error message if any */}
+        {error && <p style={{ color: "red" }}>Invalid Credentials</p>}
 
-      {/* Display error message if any */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {/* Toggle between sign-in and sign-up */}
-      <p>
-        {isSignUp ? "Already have an account?" : "Don't have an account yet?"}{" "}
-        <button type="button" onClick={toggleAuthMode}>
-          {isSignUp ? "Sign In" : "Sign Up"}
-        </button>
-      </p>
+        {/* Toggle between sign-in and sign-up */}
+        <p>
+          {isSignUp ? "Already have an account?" : "Don't have an account yet?"}{" "}
+          <button type="button" onClick={toggleAuthMode}>
+            {isSignUp ? "Sign In" : "Sign Up"}
+          </button>
+        </p>
+      </div>
+      <img src={sorc} alt="Market Analysis" className="mrktan" />
     </div>
   );
 };

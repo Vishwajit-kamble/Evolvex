@@ -19,19 +19,13 @@ export const Footer = () => {
       </p>
       <ul className="ls">
         <li>
-          <Link to="/evolvex-creative-agentic-ai">Creative</Link>
-        </li>
-        <li>
-          <Link to="/evolvex-student-agentic-ai">Student</Link>
-        </li>
-        <li>
           <Link to="/evolvex-code-agentic-ai">Developer</Link>
         </li>
         <li>
-          <Link to="/evolvex-documentation">Documentation</Link>
+          <Link to="/evolvex-creative-business-ai">Business</Link>
         </li>
         <li>
-          <Link to="/evolvex-creative-business-ai">Business</Link>
+          <Link to="/evolvex-documentation">Documentation</Link>
         </li>
       </ul>
       <p className="cpy">All right reserved - Falcons 2025</p>

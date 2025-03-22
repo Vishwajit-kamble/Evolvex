@@ -40,7 +40,7 @@ export const Documentation = () => {
           </div>
           <div>
             <TbAutomation />
-            <p>Creative Ai</p>
+            <p>Automated Workflow</p>
           </div>
         </div>
         <div className="c3"></div>

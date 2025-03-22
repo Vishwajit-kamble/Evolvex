@@ -373,3 +373,28 @@ img.cc2 {
   background: var(--w-c);
   color: var(--b-c);
 }
+.login-container {
+  background: var(--b-c);
+  border-radius: 11%;
+  color: var(--w-c);
+  padding: 4% 5%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+img.mrktan {
+  width: 500px;
+}
+
+.lplt {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.lplt h2 {
+  font-size: 45px;
+  letter-spacing: 0.025em;
+  text-transform: capitalize;
+}
