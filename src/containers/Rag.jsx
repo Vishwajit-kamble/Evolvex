@@ -1,161 +1,130 @@
-// src/Rag.jsx
-import { useState } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 
 export const Rag = () => {
   const [csvFile, setCsvFile] = useState(null);
   const [pdfFile, setPdfFile] = useState(null);
   const [query, setQuery] = useState("");
-  const [conversation, setConversation] = useState([]);
-  const [message, setMessage] = useState("");
-  const [isUploaded, setIsUploaded] = useState(false);
+  const [history, setHistory] = useState([]); // Store input/output history
+  const [uploadedFiles, setUploadedFiles] = useState({ csv: null, pdf: null });
+  const [error, setError] = useState("");
 
-  // Single API URL for both upload and query
-  const API_URL =
-    import.meta.env.MODE === "development"
-      ? "/api" // Proxy to falcons-algoforge.onrender.com in dev
-      : "https://falcons-algoforge.onrender.com";
+  const backendUrl = "https://falcons-algoforge.onrender.com/";
 
-  const handleCsvChange = (e) => setCsvFile(e.target.files[0]);
-  const handlePdfChange = (e) => setPdfFile(e.target.files[0]);
-
-  const handleUpload = async (e) => {
+  const handleFileUpload = async (e) => {
     e.preventDefault();
-    if (!csvFile && !pdfFile) {
-      setMessage("Please select at least one file.");
-      return;
-    }
+    setError("");
 
     const formData = new FormData();
     if (csvFile) formData.append("csv_file", csvFile);
     if (pdfFile) formData.append("pdf_file", pdfFile);
 
+    if (!csvFile && !pdfFile) {
+      setError("Please upload at least one file (CSV or PDF).");
+      return;
+    }
+
     try {
-      const res = await fetch(`${API_URL}/api/upload`, {
-        method: "POST",
-        body: formData,
+      const response = await axios.post(backendUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (!res.ok) {
-        throw new Error(
-          `HTTP error! Status: ${res.status} - ${res.statusText}`
-        );
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        setMessage("Files uploaded successfully.");
-        setIsUploaded(true);
-        setConversation([]);
-      } else {
-        setMessage(data.message || "Error uploading files.");
-      }
+      setUploadedFiles(response.data.files);
+      setError("");
+      alert(response.data.message);
     } catch (err) {
-      setMessage(`Error uploading files: ${err.message}`);
-      console.error("Upload error:", err);
+      setError(err.response?.data?.error || "Error uploading files");
     }
   };
 
-  const handleQuery = async (e) => {
+  const handleQuerySubmit = async (e) => {
     e.preventDefault();
-    if (!query) {
-      setMessage("Please enter a query.");
+    setError("");
+
+    if (!query.trim()) {
+      setError("Please enter a query.");
       return;
     }
-    if (!isUploaded) {
-      setMessage("Please upload files first.");
-      return;
-    }
+
+    const formData = new FormData();
+    formData.append("query", query);
 
     try {
-      const res = await fetch(`${API_URL}/api/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query }),
+      const response = await axios.post(backendUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        setConversation([...conversation, { query, response: data.response }]);
-        setQuery("");
-        setMessage("");
-      } else {
-        setMessage(data.message || "Error querying.");
-      }
+      setHistory([...history, { query, response: response.data.response }]);
+      setQuery(""); // Clear input after submission
+      setUploadedFiles(response.data.files); // Update file names if changed
     } catch (err) {
-      setMessage(`Error querying: ${err.message}`);
-      console.error("Query error:", err);
+      setError(err.response?.data?.error || "Error processing query");
     }
-  };
-
-  const handleRemove = () => {
-    setCsvFile(null);
-    setPdfFile(null);
-    setIsUploaded(false);
-    setConversation([]);
-    setMessage("Files removed. Upload new files to continue.");
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Talk to PDF</h1>
+    <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
+      <h1>Talk to Your Files</h1>
 
-      {!isUploaded ? (
-        <form onSubmit={handleUpload}>
-          <div>
-            <label>Upload CSV (optional): </label>
-            <input type="file" accept=".csv" onChange={handleCsvChange} />
-          </div>
-          <div>
-            <label>Upload PDF (optional): </label>
-            <input type="file" accept=".pdf" onChange={handlePdfChange} />
-          </div>
-          <button type="submit">Upload Files</button>
-        </form>
-      ) : (
+      {/* File Upload Section */}
+      <form onSubmit={handleFileUpload}>
         <div>
-          <p>
-            Files uploaded: {csvFile?.name || ""} {pdfFile?.name || ""}
-          </p>
-          <button onClick={handleRemove}>Remove Files</button>
+          <label>Upload CSV: </label>
+          <input
+            type="file"
+            accept=".csv"
+            onChange={(e) => setCsvFile(e.target.files[0])}
+          />
         </div>
-      )}
-      {message && <p style={{ color: "red" }}>{message}</p>}
+        <div>
+          <label>Upload PDF: </label>
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={(e) => setPdfFile(e.target.files[0])}
+          />
+        </div>
+        <button type="submit" style={{ marginTop: "10px" }}>
+          Upload Files
+        </button>
+      </form>
 
-      {isUploaded && (
-        <>
-          <form onSubmit={handleQuery}>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask something about the documents..."
-              style={{ width: "300px", marginRight: "10px" }}
-            />
-            <button type="submit">Send</button>
-          </form>
+      {/* Display Uploaded Files */}
+      {uploadedFiles.csv && <p>Uploaded CSV: {uploadedFiles.csv}</p>}
+      {uploadedFiles.pdf && <p>Uploaded PDF: {uploadedFiles.pdf}</p>}
 
-          <div style={{ marginTop: "20px" }}>
-            <h3>Conversation</h3>
-            {conversation.length === 0 ? (
-              <p>No queries yet.</p>
-            ) : (
-              <ul style={{ listStyleType: "none", padding: 0 }}>
-                {conversation.map((item, index) => (
-                  <li key={index} style={{ marginBottom: "15px" }}>
-                    <strong>You:</strong> {item.query}
-                    <br />
-                    <strong>Response:</strong> {item.response}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </>
-      )}
+      {/* Query Section */}
+      <form onSubmit={handleQuerySubmit} style={{ marginTop: "20px" }}>
+        <label>Ask a Question: </label>
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Type your question here"
+          style={{ width: "100%", marginBottom: "10px" }}
+        />
+        <button type="submit">Submit Query</button>
+      </form>
+
+      {/* Error Message */}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      {/* History Section */}
+      <div style={{ marginTop: "20px" }}>
+        <h2>Conversation History</h2>
+        {history.length === 0 ? (
+          <p>No queries yet.</p>
+        ) : (
+          history.map((item, index) => (
+            <div key={index} style={{ marginBottom: "15px" }}>
+              <p>
+                <strong>You:</strong> {item.query}
+              </p>
+              <p>
+                <strong>Response:</strong> {item.response}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 };
