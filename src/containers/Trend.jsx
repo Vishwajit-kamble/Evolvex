@@ -66,7 +66,7 @@ export const Trend = () => {
   const fetchFullContent = async (url) => {
     const jinaUrl = `https://r.jina.ai/${url}`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000); // Reduced timeout
+    const timeoutId = setTimeout(() => controller.abort(), 200000); // Reduced timeout
 
     try {
       const response = await fetch(jinaUrl, { signal: controller.signal });
@@ -567,7 +567,16 @@ export const Trend = () => {
   const prepareNiftyData = () => {
     if (!niftyData.length) {
       return {
-        labels: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7","Day 8"],
+        labels: [
+          "Day 1",
+          "Day 2",
+          "Day 3",
+          "Day 4",
+          "Day 5",
+          "Day 6",
+          "Day 7",
+          "Day 8",
+        ],
         datasets: [
           {
             label: "Market Trend (% Change)",
@@ -617,7 +626,7 @@ export const Trend = () => {
         max: 100,
         title: {
           display: true,
-          text: "Saturation Level (Higher = Fewer Jobs)",
+          text: "Job Saturation (higher the bad)",
         },
         ticks: {
           stepSize: 20,
@@ -658,11 +667,10 @@ export const Trend = () => {
   return (
     <div
       style={{
-        padding: "20px",
-        maxWidth: "1200px",
-        margin: "0 auto",
+        maxWidth: "1250px",
         fontFamily: "Poppins",
       }}
+      className="moyai"
     >
       <Typography variant="h4" gutterBottom>
         Business News & Market Trends Dashboard
@@ -681,8 +689,9 @@ export const Trend = () => {
         </Paper>
       )}
 
-      <form onSubmit={handleTopicSubmit} style={{ marginBottom: "20px" }}>
+      <form className="formsk" onSubmit={handleTopicSubmit} >
         <TextField
+          className="tfield"
           label="Enter Topic"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
@@ -701,8 +710,7 @@ export const Trend = () => {
       </form>
 
       <div className="row1">
-        <div className="pie" style={{ marginBottom: "40px" }}>
-          <Typography variant="h6">Sentiment Distribution</Typography>
+        <div className="pie">
           <div className="pi">
             <Pie
               data={prepareSentimentData()}
@@ -716,8 +724,7 @@ export const Trend = () => {
             />
           </div>
         </div>
-        <div className="bar" style={{ marginBottom: "40px" }}>
-          <Typography variant="h6">Job Saturation Prediction</Typography>
+        <div className="bar">
           <div className="ba">
             <Bar
               data={prepareJobSaturationData()}
@@ -747,14 +754,12 @@ export const Trend = () => {
       </div>
 
       <div className="row2">
-        <div className="nif" style={{ marginBottom: "40px" }}>
-          <Typography variant="h6">Market Trend (Last 5 Days)</Typography>
+        <div className="nif">
           <div className="ni">
             <Line data={prepareNiftyData()} options={niftyChartOptions} />
           </div>
         </div>
         <div>
-          <Typography variant="h6">Market Analysis & Opportunities</Typography>
           <List>
             {articles.map((article, index) => (
               <ListItem
@@ -776,6 +781,7 @@ export const Trend = () => {
                   }
                   secondary={
                     <>
+                
                       {analysisData[index]?.Sector !== "Unknown" &&
                         `${analysisData[index]?.Sector}, `}
                       {analysisData[index]?.Employment_Opportunity !== "N/A" &&

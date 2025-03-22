@@ -452,6 +452,7 @@ img.mrktan {
   border: none;
   border-bottom: 2px solid var(--w-c);
   font-size: 20px;
+  font-weight: 700;
 }
 .Code h2 {
   font-size: 35px;
@@ -507,24 +508,96 @@ textarea:focus {
 }
 
 .pi {
-  height: 17rem;
+  height: 100%;
+  width: 18rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 1rem 1px #00000025;
+  border-radius: 4rem;
+  padding: 2% 0;
 }
-
 .row1 {
   display: flex;
   width: 100%;
   flex-direction: row;
   align-items: stretch;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 3rem;
 }
 
 .ba {
-  height: 15rem;
+  height: 100%;
+  border-radius: 2rem;
+  width: 38rem;
+  box-shadow: 0 0 1rem 1px #00000045;
+  padding: 0 5%;
 }
 li.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.css-z2qibm-MuiListItem-root {
   cursor: pointer;
 }
 
-.bar {
-  width: 100%;
+.ni {
+  height: 18rem;
+  width: 38rem;
+}
+
+.row2 {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: row;
+}
+.row2 {
+  padding: 2% 4%;
+  box-shadow: 0 0 1rem 1px #00000025;
+  border-radius: 5rem;
+}
+
+ul.MuiList-root.MuiList-padding.css-b7dj7n-MuiList-root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0rem;
+  padding: 0;
+}
+
+li.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.css-1uw6cuk-MuiListItem-root {
+  padding: 1.25% 0%;
+}
+
+.MuiListItemText-root.MuiListItemText-multiline.css-14ln1j6-MuiListItemText-root {
+  margin: 0;
+}
+
+span.MuiTypography-root.MuiTypography-body1.MuiListItemText-primary.css-rizt0-MuiTypography-root
+  strong {
+  font-size: 14px;
+}
+p.MuiTypography-root.MuiTypography-body2.MuiListItemText-secondary.css-1a1whku-MuiTypography-root {
+  font-size: 12px;
+  font-weight: 700;
+}
+.tfield {
+  color: #1976d2;
+}
+
+input:focus {
+  color: #1976d2;
+  /* font-weight: 700; */
+}
+
+form.formsk {
+  margin: -1% 0;
+}
+.moyai {
+  border-radius: 2rem;
+  box-shadow: 0rem 0rem 6rem 1px #00000025;
+  gap: 2em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.moyai {
+  padding: 2%;
+  margin: 2% 9.5%;
 }
