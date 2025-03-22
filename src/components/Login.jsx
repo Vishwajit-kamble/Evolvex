@@ -63,7 +63,7 @@ export const Login = () => {
   return (
     <div className="login-container">
       <div className="lplt">
-        <h2>{isSignUp ? "SIGN UP" : "SIGN IN"} TO EVOLVEX</h2>
+        <h2><span>EVOLVEX</span> <br />{isSignUp ? "SIGN UP" : "SIGN IN"}</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="email"

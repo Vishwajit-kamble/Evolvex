@@ -377,14 +377,15 @@ img.cc2 {
   background: var(--b-c);
   border-radius: 11%;
   color: var(--w-c);
-  padding: 4% 5%;
+  padding: 5%;
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-evenly;
 }
 
 img.mrktan {
-  width: 500px;
+  width: 600px;
 }
 
 .lplt {
@@ -394,7 +395,61 @@ img.mrktan {
 }
 
 .lplt h2 {
-  font-size: 45px;
-  letter-spacing: 0.025em;
+  font-size: 49.44px;
+  line-height: 100%;
+  font-weight: 800;
   text-transform: capitalize;
+}
+.lplt h2 span {
+  font-weight: 900;
+  font-size: 80px;
+  color: transparent;
+  background: linear-gradient(35deg, #f2efe714, #f1efe7);
+  background-clip: text;
+}
+.lplt p {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.lplt p button,
+.lplt form button {
+  padding: 0.75em 1.75em;
+  font-size: 16px;
+  border: 2px solid var(--w-c);
+  border-radius: 4rem;
+  background: transparent;
+  color: var(--w-c);
+  transition: all ease 0.25s;
+  cursor: pointer;
+}
+.lplt p button:hover,
+.lplt form button:hover {
+  color: var(--b-c);
+  background: var(--w-c);
+}
+.lplt p {
+  gap: 0.5em;
+}
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  gap: 1em;
+  margin: 10% 0;
+}
+
+.lplt form input {
+  width: 80%;
+  padding: 2% 4%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--w-c);
+  font-size: 20px;
 }

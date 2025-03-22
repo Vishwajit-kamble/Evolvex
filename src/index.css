@@ -11,13 +11,18 @@
   font-family: "Poppins";
   padding: 0;
 }
-input:focus-within{
+input:focus-within {
   outline: none;
+  stroke: none;
+  color: var(--w-c);
+}
+input:focus-visible,input:focus {
+  outline: none;
+  color: var(--w-c);
   stroke: none;
 }
-input:focus-visible{
-  outline: none;
-  stroke: none;
+input{
+  color: var(--w-c);
 }
 #root {
   background-color: var(--w-c);
