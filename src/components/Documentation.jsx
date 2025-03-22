@@ -7,6 +7,7 @@ import { RiRobot3Line } from "react-icons/ri";
 import { GiStumpRegrowth } from "react-icons/gi";
 import { TbBusinessplan } from "react-icons/tb";
 import { TbAutomation } from "react-icons/tb";
+import { Trend } from "../containers/Trend";
 
 export const Documentation = () => {
   return (
@@ -59,6 +60,7 @@ export const Documentation = () => {
         Manager Agent overseeing tasks, while dedicated agents handle code
         accuracy, debugging, documentation, and knowledge retrieval.
       </p>
+      <Trend />
       <div className="igla2">
         <div className="cc1">
           <img src={rr1} alt="rr1" className="rr1" />
