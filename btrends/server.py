@@ -22,10 +22,15 @@ TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
 # CORS configuration
 # Always allow localhost:5173/evolvex-business-agentic-ai, and conditionally add production origin
-allowed_origins = ["http://localhost:5173/evolvex-business-agentic-ai","http://localhost:5173"]
-if ENVIRONMENT == "production":
-    allowed_origins.append("https://evolvexai.vercel.app")
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173/evolvex-code-agentic-ai",
+            "http://localhost:5173",
+            "https://evolvexai.vercel.app"
+        ]
+    }
+})
 
 def fetch_full_content(url, max_retries=3, initial_timeout=40):
     """Use Jina Reader to fetch full content from a URL with retries."""
