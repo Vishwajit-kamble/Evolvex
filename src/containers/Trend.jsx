@@ -11,7 +11,7 @@ export const Trend = () => {
     setError(null);
     try {
       const response = await fetch(
-        "https://news-analysis-api.onrender.com/api/rag",
+        "https://falcons-algoforge.onrender.com/api/rag",
         {
           method: "POST",
           headers: {
@@ -24,7 +24,7 @@ export const Trend = () => {
         throw new Error("Failed to fetch analysis");
       }
       const data = await response.json();
-      setAnalysis(data);
+      setAnalysis(data.json); // Extract the "json" field from the response
     } catch (err) {
       setError(err.message);
     } finally {
@@ -47,7 +47,7 @@ export const Trend = () => {
           type="text"
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
-          placeholder="Enter news topic (e.g., tech industry)"
+          placeholder="Enter news topic (e.g., business, SAAS)"
         />
         <button type="submit" disabled={loading}>
           {loading ? "Loading..." : "Analyze"}
