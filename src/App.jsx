@@ -1,5 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import "./App.css";
 import { Navbar } from "./components/Navbar";
 import { Footer } from "./components/Footer";
@@ -70,11 +76,20 @@ function App() {
 
   // Protected Route component
   const ProtectedRoute = ({ children }) => {
-    if (!user) {
-      return <Navigate to="/evolvex-signin" replace />;
+    const { user } = useAuth();
+    const location = useLocation();
+
+    if (!user && location.pathname !== "/evolvex-signin") {
+      return (
+        <Navigate to="/evolvex-signin" state={{ from: location }} replace />
+      );
     }
     return children;
   };
+  useEffect(() => {
+    window.addEventListener("beforeunload", logout);
+    return () => window.removeEventListener("beforeunload", logout);
+  }, []);
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>

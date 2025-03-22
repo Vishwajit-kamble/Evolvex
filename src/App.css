@@ -377,7 +377,7 @@ img.cc2 {
   background: var(--b-c);
   border-radius: 11%;
   color: var(--w-c);
-  padding: 5%;
+  padding: 6% 20%;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -432,7 +432,7 @@ img.mrktan {
 .lplt p {
   gap: 0.5em;
 }
-form {
+.lplt form {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -452,4 +452,56 @@ form {
   border: none;
   border-bottom: 2px solid var(--w-c);
   font-size: 20px;
+}
+.Code h2 {
+  font-size: 35px;
+  font-weight: 800;
+}
+.Code h2 {
+  font-size: 35px;
+  font-weight: 800;
+}
+
+.Code form textarea {
+  resize:none;
+  width: 100%;
+  padding: 2% 5%;
+  font-size: 15px;
+  min-width: 45rem;
+  border-radius: 2rem;
+}
+
+.Code form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1% 0% 3% 0;
+}
+
+.Code {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+textarea:focus {
+  outline: none;
+  stroke: none;
+}
+.Code form button {
+  padding: 0.75em 1.75em;
+  font-size: 18px;
+  border-radius: 2rem;
+  border: 2px solid var(--b-c);
+  transition: all ease 0.25s;
+  background: var(--b-c);
+  color: var(--w-c);
+  cursor: pointer;
+}
+
+.Code form button:hover {
+  border: 2px solid var(--b-c);
+  color: var(--b-c);
+  background: transparent;
 }
