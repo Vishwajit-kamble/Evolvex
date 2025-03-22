@@ -5,7 +5,6 @@ import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
-import csv
 from io import StringIO
 from dotenv import load_dotenv
 import os
@@ -27,7 +26,8 @@ CORS(app, resources={
         "origins": [
             "http://localhost:5173/evolvex-business-agentic-ai",
             "http://localhost:5173",
-            "https://evolvexai.vercel.app"
+            "https://evolvexai.vercel.app",
+            "https://evolvexai.vercel.app/evolvex-business-agentic-ai"
         ]
     }
 })
@@ -116,7 +116,7 @@ def fetch_business_news(topic):
     
     NEWS_API_URL = f"https://newsapi.org/v2/everything?q={topic}&language=en&apiKey={NEWS_API_KEY}"
     try:
-        response = requests.get(NEWS_API_URL, timeout=10)
+        response = requests.get(NEWS_API_URL)
         response.raise_for_status()
         news_data = response.json()
         
@@ -133,6 +133,7 @@ def fetch_business_news(topic):
         return analysis_list
         
     except Exception as e:
+        print(e)
         return [{
             "Overall_Sentiment": "N/A",
             "Emotion_Detection": "N/A",
@@ -150,27 +151,18 @@ def get_news_analysis():
     if request.method == 'POST':
         data = request.get_json()
         topic = data.get('topic', '')
-    else:  # GET
+    else:
         topic = request.args.get('topic', '')
-    
     if not topic:
         return jsonify({"error": "Topic is required"}), 400
     
+    print(f"Fetching news for topic: {topic}")
     analysis_result = fetch_business_news(topic)
-    
-    # Convert to CSV
-    csv_buffer = StringIO()
-    fieldnames = analysis_result[0].keys()
-    writer = csv.DictWriter(csv_buffer, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(analysis_result)
-    csv_data = csv_buffer.getvalue()
-    csv_buffer.close()
-    
+    print(f"Analysis Result: {analysis_result}")
+        
     return jsonify({
         "json": analysis_result,
-        "csv": csv_data
     })
-
+    
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=ENVIRONMENT != "production")

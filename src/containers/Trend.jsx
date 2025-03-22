@@ -1,108 +1,110 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
+import AnalysisChart from "./AnalysisChart"; // Import the new component
 
 export const Trend = () => {
-  const [topic, setTopic] = useState("");
-  const [analysis, setAnalysis] = useState([]);
+  const [topic, setTopic] = useState("business");
+  const [analysisResult, setAnalysisResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const fetchAnalysis = async (searchTopic) => {
+  const ENVIRONMENT = import.meta.env.REACT_APP_ENVIRONMENT || "production";
+  const API_URL =
+    ENVIRONMENT === "production"
+      ? "https://your-backend-api.com/api/rag"
+      : "http://localhost:5000/api/rag";
+
+  const fetchBusinessNews = async (topic) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        "https://falcons-algoforge.onrender.com/api/rag",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ topic: searchTopic }),
-        }
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch analysis");
+      const response = await axios.get(API_URL, { params: { topic } });
+      if (response.data.json) {
+        setAnalysisResult(response.data.json);
+      } else {
+        throw new Error("No analysis data received");
       }
-      const data = await response.json();
-      setAnalysis(data.json); // Extract the "json" field from the response
     } catch (err) {
-      setError(err.message);
+      setError(`Failed to fetch news analysis: ${err.message}`);
+      setAnalysisResult([
+        {
+          Overall_Sentiment: "N/A",
+          Emotion_Detection: "N/A",
+          Polarity_Score: 0,
+          Stock_Market_Effect: "N/A",
+          Search_Volume: "N/A",
+          Revenue_Profit_Impact: "N/A",
+          Recession_Signals: "N/A",
+          Supply_Demand_Gaps: "N/A",
+          Employment_Opportunity: "N/A",
+        },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchBusinessNews(topic);
+  }, [topic]);
+
+  const handleTopicChange = (e) => {
+    setTopic(e.target.value);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (topic) {
-      fetchAnalysis(topic);
-    }
+    fetchBusinessNews(topic);
   };
 
   return (
-    <div>
-      <h1>News Trend Analysis</h1>
+    <div className="trend-component">
+      <h1>Business News Trends</h1>
+
       <form onSubmit={handleSubmit}>
+        <label htmlFor="topic">Topic: </label>
         <input
           type="text"
+          id="topic"
           value={topic}
-          onChange={(e) => setTopic(e.target.value)}
-          placeholder="Enter news topic (e.g., business, SAAS)"
+          onChange={handleTopicChange}
+          placeholder="Enter topic (e.g., business)"
         />
         <button type="submit" disabled={loading}>
-          {loading ? "Loading..." : "Analyze"}
+          {loading ? "Fetching..." : "Analyze"}
         </button>
       </form>
 
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {analysis.length > 0 && (
-        <div>
-          <h2>Analysis Results</h2>
-          {analysis.map((result, index) => (
-            <div
-              key={index}
-              style={{
-                marginBottom: "20px",
-                border: "1px solid #ccc",
-                padding: "10px",
-              }}
-            >
-              <p>
-                <strong>Overall Sentiment:</strong> {result.Overall_Sentiment}
-              </p>
-              <p>
-                <strong>Emotion Detection:</strong> {result.Emotion_Detection}
-              </p>
-              <p>
-                <strong>Polarity Score:</strong> {result.Polarity_Score}
-              </p>
-              <p>
-                <strong>Stock Market Effect:</strong>{" "}
-                {result.Stock_Market_Effect}
-              </p>
-              <p>
-                <strong>Search Volume:</strong> {result.Search_Volume}
-              </p>
-              <p>
-                <strong>Revenue/Profit Impact:</strong>{" "}
-                {result.Revenue_Profit_Impact}
-              </p>
-              <p>
-                <strong>Recession Signals:</strong> {result.Recession_Signals}
-              </p>
-              <p>
-                <strong>Supply & Demand Gaps:</strong>{" "}
-                {result.Supply_Demand_Gaps}
-              </p>
-              <p>
-                <strong>Employment Opportunity:</strong>{" "}
-                {result.Employment_Opportunity}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Replace the old list with the chart */}
+      <AnalysisChart analysisResult={analysisResult} />
+
+      <style jsx>{`
+        .trend-component {
+          padding: 20px;
+          font-family: Arial, sans-serif;
+        }
+        form {
+          margin-bottom: 20px;
+        }
+        input {
+          padding: 5px;
+          margin-right: 10px;
+        }
+        button {
+          padding: 5px 10px;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 3px;
+          cursor: pointer;
+        }
+        button:disabled {
+          background-color: #cccccc;
+          cursor: not-allowed;
+        }
+      `}</style>
     </div>
   );
 };
