@@ -58,7 +58,7 @@ export const Trend = () => {
   const [topic, setTopic] = useState("business");
   const [articles, setArticles] = useState([]);
   const [error, setError] = useState(null);
-  const [sectorOpportunities, setSectorOpportunities] = useState({});
+  const [jobSaturationData, setJobSaturationData] = useState({});
   const [aiGeneratedTitles, setAiGeneratedTitles] = useState([]);
   const navigate = useNavigate();
 
@@ -206,6 +206,108 @@ export const Trend = () => {
     return defaultAnalysis;
   };
 
+  // New function to predict job saturation levels
+  const predictJobSaturation = async (analyses) => {
+    if (!analyses || analyses.length === 0) {
+      return {
+        Tech: { level: "Medium", score: 50 },
+        Finance: { level: "Medium", score: 50 },
+        Healthcare: { level: "Medium", score: 50 },
+        Energy: { level: "Medium", score: 50 },
+        General: { level: "Medium", score: 50 },
+      };
+    }
+
+    const sectorAnalyses = {};
+
+    // Group analyses by sector
+    analyses.forEach((analysis) => {
+      const sector = analysis.Sector || "General";
+      if (!sectorAnalyses[sector]) {
+        sectorAnalyses[sector] = [];
+      }
+      sectorAnalyses[sector].push(analysis);
+    });
+
+    // Calculate job saturation for each sector
+    const jobSaturation = {};
+
+    Object.entries(sectorAnalyses).forEach(([sector, sectorData]) => {
+      // Variables for job saturation calculation
+      let employmentScore = 0;
+      let recession = 0;
+      let sentiment = 0;
+      let supplyDemand = 0;
+
+      sectorData.forEach((item) => {
+        // Employment opportunity factor
+        if (
+          item.Employment_Opportunity.includes("creation") ||
+          item.Employment_Opportunity.includes("increase") ||
+          item.Employment_Opportunity.includes("growth")
+        ) {
+          employmentScore -= 10; // Lower saturation
+        } else if (
+          item.Employment_Opportunity.includes("reduction") ||
+          item.Employment_Opportunity.includes("decrease") ||
+          item.Employment_Opportunity.includes("layoff")
+        ) {
+          employmentScore += 15; // Higher saturation
+        }
+
+        // Recession signals factor
+        if (
+          item.Recession_Signals.includes("slowdown") ||
+          item.Recession_Signals.includes("layoff") ||
+          item.Recession_Signals.includes("declin")
+        ) {
+          recession += 10; // Higher saturation
+        }
+
+        // Sentiment factor
+        if (item.Overall_Sentiment === "Positive") {
+          sentiment -= 5; // Lower saturation
+        } else if (item.Overall_Sentiment === "Negative") {
+          sentiment += 5; // Higher saturation
+        }
+
+        // Supply & demand factor
+        if (
+          item.Supply_Demand_Gaps.includes("shortage") ||
+          item.Supply_Demand_Gaps.includes("increased demand")
+        ) {
+          supplyDemand -= 8; // Lower saturation (more jobs needed)
+        }
+      });
+
+      // Calculate total score (normalize to 0-100 range)
+      // Higher score = more saturated job market = fewer opportunities
+      const baseValue = 50; // Neutral starting point
+      let totalScore =
+        baseValue + employmentScore + recession + sentiment + supplyDemand;
+
+      // Keep within bounds
+      totalScore = Math.max(0, Math.min(100, totalScore));
+
+      // Determine saturation level
+      let level;
+      if (totalScore < 30) {
+        level = "Low"; // Low saturation = many job opportunities
+      } else if (totalScore < 70) {
+        level = "Medium";
+      } else {
+        level = "High"; // High saturation = few job opportunities
+      }
+
+      jobSaturation[sector] = {
+        level: level,
+        score: totalScore,
+      };
+    });
+
+    return jobSaturation;
+  };
+
   // Simplified title generation with better error handling
   const generateArticleTitle = async (content, originalTitle) => {
     if (!content || content.length < 100) return originalTitle;
@@ -310,29 +412,19 @@ export const Trend = () => {
       // Extract data from processed articles
       const analyses = [];
       const titles = [];
-      const sectors = {};
 
       processedArticles.forEach(({ article, analysis, aiTitle }) => {
         analyses.push(analysis);
         titles.push(aiTitle);
-
-        // Aggregate sector opportunities
-        const sector = analysis.Sector || "Unknown";
-        if (!sectors[sector]) sectors[sector] = 0;
-
-        if (
-          analysis.Employment_Opportunity === "Potential job creation" ||
-          analysis.Employment_Opportunity.includes("job") ||
-          analysis.Employment_Opportunity.includes("hiring")
-        ) {
-          sectors[sector] += 1;
-        }
       });
+
+      // Generate job saturation data based on analyses
+      const saturationData = await predictJobSaturation(analyses);
 
       setArticles(articleList);
       setAnalysisData(analyses);
       setAiGeneratedTitles(titles);
-      setSectorOpportunities(sectors);
+      setJobSaturationData(saturationData);
     } catch (error) {
       console.error("Error fetching news:", error.message);
       setError("Failed to fetch news data. Displaying fallback data.");
@@ -361,11 +453,11 @@ export const Trend = () => {
       );
 
       setAiGeneratedTitles(Array(5).fill("Market Update"));
-      setSectorOpportunities({
-        Tech: 2,
-        Finance: 1,
-        Healthcare: 1,
-        Energy: 1,
+      setJobSaturationData({
+        Tech: { level: "Medium", score: 50 },
+        Finance: { level: "Medium", score: 50 },
+        Healthcare: { level: "Low", score: 30 },
+        Energy: { level: "High", score: 75 },
       });
     } finally {
       setLoading(false);
@@ -434,18 +526,39 @@ export const Trend = () => {
     };
   };
 
-  const prepareSectorData = () => {
+  // New function to prepare job saturation data for the bar chart
+  const prepareJobSaturationData = () => {
+    if (Object.keys(jobSaturationData).length === 0) {
+      return {
+        labels: ["No Data"],
+        datasets: [
+          {
+            label: "Job Saturation Level",
+            data: [0],
+            backgroundColor: "#CCCCCC",
+          },
+        ],
+      };
+    }
+
+    // Color mapping based on saturation level
+    const getBarColor = (score) => {
+      if (score < 30) return "#4CAF50"; // Green for low saturation (good job prospects)
+      if (score < 70) return "#FFC107"; // Yellow for medium saturation
+      return "#F44336"; // Red for high saturation (poor job prospects)
+    };
+
+    const sectors = Object.keys(jobSaturationData);
+    const scores = sectors.map((sector) => jobSaturationData[sector].score);
+    const colors = scores.map(getBarColor);
+
     return {
-      labels: Object.keys(sectorOpportunities).length
-        ? Object.keys(sectorOpportunities)
-        : ["No Data"],
+      labels: sectors,
       datasets: [
         {
-          label: "Opportunities by Sector",
-          data: Object.values(sectorOpportunities).length
-            ? Object.values(sectorOpportunities)
-            : [0],
-          backgroundColor: "#42A5F5",
+          label: "Job Saturation Level (%)",
+          data: scores,
+          backgroundColor: colors,
         },
       ],
     };
@@ -454,11 +567,11 @@ export const Trend = () => {
   const prepareNiftyData = () => {
     if (!niftyData.length) {
       return {
-        labels: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"],
+        labels: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7","Day 8"],
         datasets: [
           {
             label: "Market Trend (% Change)",
-            data: [0, 0, 0, 0, 0],
+            data: [0, 0, 0, 0, 0, 0, 0, 0],
             borderColor: "#4CAF50",
             fill: false,
           },
@@ -493,6 +606,23 @@ export const Trend = () => {
     plugins: {
       legend: { position: "top" },
       title: { display: true },
+    },
+  };
+
+  const jobSaturationChartOptions = {
+    ...chartOptions,
+    scales: {
+      y: {
+        min: 0,
+        max: 100,
+        title: {
+          display: true,
+          text: "Saturation Level (Higher = Fewer Jobs)",
+        },
+        ticks: {
+          stepSize: 20,
+        },
+      },
     },
   };
 
@@ -587,15 +717,28 @@ export const Trend = () => {
           </div>
         </div>
         <div className="bar" style={{ marginBottom: "40px" }}>
-          <Typography variant="h6">Opportunities by Sector</Typography>
+          <Typography variant="h6">Job Saturation Prediction</Typography>
           <div className="ba">
             <Bar
-              data={prepareSectorData()}
+              data={prepareJobSaturationData()}
               options={{
-                ...chartOptions,
+                ...jobSaturationChartOptions,
                 plugins: {
                   ...chartOptions.plugins,
-                  title: { text: "Opportunities by Sector", display: true },
+                  title: {
+                    text: "Job Saturation Level by Sector",
+                    display: true,
+                  },
+                  tooltip: {
+                    callbacks: {
+                      afterLabel: function (context) {
+                        const sector = context.label;
+                        const level =
+                          jobSaturationData[sector]?.level || "Unknown";
+                        return `Saturation: ${level} (${context.raw}%)`;
+                      },
+                    },
+                  },
                 },
               }}
             />
@@ -634,13 +777,13 @@ export const Trend = () => {
                   secondary={
                     <>
                       {analysisData[index]?.Sector !== "Unknown" &&
-                        `Sector: ${analysisData[index]?.Sector}, `}
+                        `${analysisData[index]?.Sector}, `}
                       {analysisData[index]?.Employment_Opportunity !== "N/A" &&
-                        `Employment: ${analysisData[index]?.Employment_Opportunity}, `}
+                        `${analysisData[index]?.Employment_Opportunity}, `}
                       {analysisData[index]?.Revenue_Profit_Impact !== "N/A" &&
-                        `Profit Impact: ${analysisData[index]?.Revenue_Profit_Impact}, `}
+                        `${analysisData[index]?.Revenue_Profit_Impact}, `}
                       {analysisData[index]?.Supply_Demand_Gaps !== "N/A" &&
-                        `Supply/Demand: ${analysisData[index]?.Supply_Demand_Gaps}`}
+                        `${analysisData[index]?.Supply_Demand_Gaps}`}
                     </>
                   }
                 />
