@@ -463,7 +463,7 @@ img.mrktan {
 }
 
 .Code form textarea {
-  resize:none;
+  resize: none;
   width: 100%;
   padding: 2% 5%;
   font-size: 15px;
@@ -504,4 +504,27 @@ textarea:focus {
   border: 2px solid var(--b-c);
   color: var(--b-c);
   background: transparent;
+}
+
+.pi {
+  height: 17rem;
+}
+
+.row1 {
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: space-between;
+}
+
+.ba {
+  height: 15rem;
+}
+li.MuiListItem-root.MuiListItem-gutters.MuiListItem-padding.css-z2qibm-MuiListItem-root {
+  cursor: pointer;
+}
+
+.bar {
+  width: 100%;
 }
