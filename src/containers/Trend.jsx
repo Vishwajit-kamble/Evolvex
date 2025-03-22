@@ -38,15 +38,17 @@ ChartJS.register(
 
 const NEWS_API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 const TOGETHER_API_KEY = import.meta.env.VITE_TOGETHER_API_KEY;
+const TWELVE_DATA_API_KEY = import.meta.env.VITE_TWELVE_DATA_API_KEY;
 
 export const Trend = () => {
   const [analysisData, setAnalysisData] = useState([]);
+  const [niftyData, setNiftyData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [topic, setTopic] = useState("business");
-  const [articles, setArticles] = useState([]); // Store article metadata
+  const [articles, setArticles] = useState([]);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  // Fetch full content using Jina Reader with proper timeout
   const fetchFullContent = async (url) => {
     const jinaUrl = `https://r.jina.ai/${url}`;
     const controller = new AbortController();
@@ -63,28 +65,25 @@ export const Trend = () => {
     }
   };
 
-  // Analyze content with Together AI (using a more advanced model)
   const analyzeWithTogether = async (content, title) => {
     const prompt = `
       Analyze the following news article content for these factors:
       1. Overall Sentiment (Positive, Negative, Neutral)
       2. Emotion Detection (Fear, Optimism, Uncertainty, Confidence)
-      3. Polarity Score (-1 to +1, how extreme the sentiment is)
-      4. Nifty Effect (Likely rise or fall in Nifty index)
-      5. Search Volume (Simulated: High, Medium, Low interest)
-      6. Revenue/Profit Impact (Increase or decrease in business profits)
-      7. Recession Signals (Economic slowdowns, layoffs, declining investments)
-      8. Supply & Demand Gaps (Shortages, production delays, increased demand)
-      9. Employment Opportunity (Potential job creation or reduction)
+      3. Polarity Score (-1 to +1)
+      4. Search Volume (Simulated: High, Medium, Low interest)
+      5. Revenue/Profit Impact (Increase or decrease)
+      6. Recession Signals (Economic slowdowns, layoffs, declining investments)
+      7. Supply & Demand Gaps (Shortages, production delays, increased demand)
+      8. Employment Opportunity (Potential job creation or reduction)
       
       Title: ${title}
       Content: ${content.slice(0, 2000)}
-      Provide the analysis in a structured JSON format like this:
+      Provide the analysis in JSON format:
       {
         "Overall_Sentiment": "value",
         "Emotion_Detection": "value",
         "Polarity_Score": value,
-        "Nifty_Effect": "value",
         "Search_Volume": "value",
         "Revenue_Profit_Impact": "value",
         "Recession_Signals": "value",
@@ -103,7 +102,7 @@ export const Trend = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "mistralai/Mixtral-8x7B-Instruct-v0.1", // More advanced model
+            model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
             messages: [{ role: "user", content: prompt }],
             max_tokens: 1000,
             temperature: 0.7,
@@ -112,6 +111,9 @@ export const Trend = () => {
       );
 
       const result = await response.json();
+      if (!result.choices || !result.choices[0]) {
+        throw new Error("Invalid response from Together AI");
+      }
       const contentText = result.choices[0].message.content;
       const jsonMatch =
         contentText.match(/```json\s*([\s\S]*?)\s*```/) ||
@@ -123,7 +125,6 @@ export const Trend = () => {
         Overall_Sentiment: "N/A",
         Emotion_Detection: "N/A",
         Polarity_Score: 0,
-        Nifty_Effect: "N/A",
         Search_Volume: "N/A",
         Revenue_Profit_Impact: "N/A",
         Recession_Signals: "N/A",
@@ -133,9 +134,23 @@ export const Trend = () => {
     }
   };
 
-  // Fetch and analyze news
+  const fetchNiftyData = async () => {
+    const url = `https://api.twelvedata.com/time_series?symbol=NIFTY&interval=1day&outputsize=5&apikey=${TWELVE_DATA_API_KEY}`;
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Twelve Data API request failed");
+      const data = await response.json();
+      setNiftyData(data.values || []);
+    } catch (error) {
+      console.error("Error fetching Nifty data:", error);
+      setNiftyData([]);
+      setError("Failed to fetch Nifty data. Please try again later.");
+    }
+  };
+
   const fetchBusinessNews = async (selectedTopic) => {
     setLoading(true);
+    setError(null);
     const NEWS_API_URL = `https://newsapi.org/v2/everything?q=${selectedTopic}&language=en&apiKey=${NEWS_API_KEY}`;
     try {
       const response = await fetch(NEWS_API_URL);
@@ -157,12 +172,12 @@ export const Trend = () => {
       setAnalysisData(analysisList);
     } catch (error) {
       console.error("Error fetching news:", error);
+      setError("Failed to fetch news data. Displaying fallback data.");
       setAnalysisData([
         {
           Overall_Sentiment: "N/A",
           Emotion_Detection: "N/A",
           Polarity_Score: 0,
-          Nifty_Effect: "N/A",
           Search_Volume: "N/A",
           Revenue_Profit_Impact: "N/A",
           Recession_Signals: "N/A",
@@ -170,37 +185,50 @@ export const Trend = () => {
           Employment_Opportunity: "N/A",
         },
       ]);
+      setArticles([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle topic submission
   const handleTopicSubmit = (e) => {
     e.preventDefault();
     fetchBusinessNews(topic);
+    fetchNiftyData();
   };
 
-  // Periodic refresh (every 5 minutes)
   useEffect(() => {
     fetchBusinessNews(topic);
-    const interval = setInterval(() => fetchBusinessNews(topic), 300000); // 5 minutes
+    fetchNiftyData();
+    const interval = setInterval(() => {
+      fetchBusinessNews(topic);
+      fetchNiftyData();
+    }, 300000);
     return () => clearInterval(interval);
   }, []);
 
   if (loading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography color="error">{error}</Typography>;
 
-  // Prepare chart data
-  const sentimentCounts = analysisData.reduce((acc, item) => {
-    acc[item.Overall_Sentiment] = (acc[item.Overall_Sentiment] || 0) + 1;
-    return acc;
-  }, {});
+  const sentimentCounts = analysisData.length
+    ? analysisData.reduce((acc, item) => {
+        acc[item.Overall_Sentiment] = (acc[item.Overall_Sentiment] || 0) + 1;
+        return acc;
+      }, {})
+    : { "N/A": 1 };
 
-  const polarityScores = analysisData.map((item) => item.Polarity_Score);
-  const niftyEffects = analysisData.reduce((acc, item) => {
-    acc[item.Nifty_Effect] = (acc[item.Nifty_Effect] || 0) + 1;
-    return acc;
-  }, {});
+  const polarityScores = analysisData.length
+    ? analysisData.map((item) => item.Polarity_Score)
+    : [0];
+
+  const niftyEffectData = niftyData.length
+    ? niftyData.map((current, i, arr) => {
+        if (i === 0) return 0;
+        const prevClose = parseFloat(arr[i - 1].close);
+        const currClose = parseFloat(current.close);
+        return currClose > prevClose ? 1 : currClose < prevClose ? -1 : 0;
+      })
+    : [0, 0, 0, 0, 0];
 
   const pieData = {
     labels: Object.keys(sentimentCounts),
@@ -214,7 +242,9 @@ export const Trend = () => {
   };
 
   const barData = {
-    labels: analysisData.map((_, i) => `Article ${i + 1}`),
+    labels: analysisData.length
+      ? analysisData.map((_, i) => `Article ${i + 1}`)
+      : ["No Data"],
     datasets: [
       {
         label: "Polarity Score",
@@ -225,17 +255,13 @@ export const Trend = () => {
   };
 
   const lineData = {
-    labels: analysisData.map((_, i) => `Article ${i + 1}`),
+    labels: niftyData.length
+      ? niftyData.map((item) => item.datetime.split(" ")[0])
+      : ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5"],
     datasets: [
       {
         label: "Nifty Effect (Rise/Fall)",
-        data: analysisData.map((item) =>
-          item.Nifty_Effect === "Rise"
-            ? 1
-            : item.Nifty_Effect === "Fall"
-            ? -1
-            : 0
-        ),
+        data: niftyEffectData,
         borderColor: "#4CAF50",
         fill: false,
       },
@@ -257,10 +283,8 @@ export const Trend = () => {
       }}
     >
       <Typography variant="h4" gutterBottom>
-        Business News Trends Dashboard
+        Business News & Nifty Trends Dashboard
       </Typography>
-
-      {/* Topic Input */}
       <form onSubmit={handleTopicSubmit} style={{ marginBottom: "20px" }}>
         <TextField
           label="Enter Topic"
@@ -274,8 +298,6 @@ export const Trend = () => {
           Analyze
         </Button>
       </form>
-
-      {/* Pie Chart */}
       <div style={{ marginBottom: "40px" }}>
         <Typography variant="h6">Sentiment Distribution</Typography>
         <Pie
@@ -289,8 +311,6 @@ export const Trend = () => {
           }}
         />
       </div>
-
-      {/* Bar Chart */}
       <div style={{ marginBottom: "40px" }}>
         <Typography variant="h6">Polarity Scores Across Articles</Typography>
         <Bar
@@ -304,10 +324,8 @@ export const Trend = () => {
           }}
         />
       </div>
-
-      {/* Line Chart */}
       <div style={{ marginBottom: "40px" }}>
-        <Typography variant="h6">Nifty Effect Trend</Typography>
+        <Typography variant="h6">Nifty Effect Trend (Last 5 Days)</Typography>
         <Line
           data={lineData}
           options={{
@@ -319,15 +337,13 @@ export const Trend = () => {
           }}
         />
       </div>
-
-      {/* Opportunities & Insights */}
       <div>
         <Typography variant="h6">Opportunities & Insights</Typography>
         <List>
           {analysisData.map((item, index) => (
             <ListItem
               key={index}
-              button
+              button={true} // Explicitly set button prop
               onClick={() =>
                 navigate(`/blog/${index}`, {
                   state: { article: articles[index], analysis: item },
