@@ -28,7 +28,7 @@ export const Code = () => {
         { timeout: 30000 } // 30-second timeout
       );
       const output = response.data.output || "No output returned.";
-
+      
       // Add output to history
       setHistory((prev) => [...prev, { type: "output", text: output }]);
     } catch (err) {
@@ -57,10 +57,7 @@ export const Code = () => {
 
       // Text before code block
       if (codeStart > 0) {
-        parts.push({
-          type: "text",
-          content: remainingText.slice(0, codeStart),
-        });
+        parts.push({ type: "text", content: remainingText.slice(0, codeStart) });
       }
 
       // Find end of code block
@@ -96,9 +93,7 @@ export const Code = () => {
         {history.map((item, index) => (
           <div
             key={index}
-            className={
-              item.type === "input" ? "user-message" : "output-message"
-            }
+            className={item.type === "input" ? "user-message" : "output-message"}
           >
             <strong>{item.type === "input" ? "Input" : "Output"}:</strong>
             {renderMessage(item.text)}

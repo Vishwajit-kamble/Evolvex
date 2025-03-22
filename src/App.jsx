@@ -17,6 +17,7 @@ import { CiVolumeHigh, CiVolumeMute } from "react-icons/ci";
 import mp3 from "./assets/bg.mp3";
 import { Documentation } from "./components/Documentation";
 import { Login } from "./components/Login";
+import { Trend } from "./containers/Trend";
 
 // Create an Auth Context
 const AuthContext = React.createContext();
@@ -134,7 +135,7 @@ function App() {
             path="/evolvex-business-agentic-ai"
             element={
               <ProtectedRoute>
-                <UnderDev />
+                <Trend />
               </ProtectedRoute>
             }
           />

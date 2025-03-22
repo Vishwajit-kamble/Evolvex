@@ -7,19 +7,25 @@ from flask_cors import CORS
 import json
 import csv
 from io import StringIO
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file in the same folder
+load_dotenv()
 
 app = Flask(__name__)
 
-# CORS configuration
-ENVIRONMENT = "production"  # Set to "production" for Render
-if ENVIRONMENT == "production":
-    CORS(app, resources={r"/api/*": {"origins": "https://evolvexai.vercel.app"}})
-else:
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}})
+# Retrieve environment variables
+ENVIRONMENT = os.getenv("ENVIRONMENT", "production")  # Default to production if not set
+NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 
-# --- Configuration ---
-NEWS_API_KEY = "c384894b14684b939f59a4b9c36bc13d"  # Your NewsAPI key
-TOGETHER_API_KEY = "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM"  # Your Together AI API key
+# CORS configuration
+# Always allow localhost:5173/evolvex-business-agentic-ai, and conditionally add production origin
+allowed_origins = ["http://localhost:5173/evolvex-business-agentic-ai"]
+if ENVIRONMENT == "production":
+    allowed_origins.append("https://evolvexai.vercel.app")
+CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
 
 def fetch_full_content(url, max_retries=3, initial_timeout=40):
     """Use Jina Reader to fetch full content from a URL with retries."""
@@ -37,6 +43,9 @@ def fetch_full_content(url, max_retries=3, initial_timeout=40):
 
 def analyze_with_together(content, title):
     """Send content to Together AI for analysis using SDK."""
+    if not TOGETHER_API_KEY:
+        raise ValueError("TOGETHER_API_KEY is not set in environment variables")
+    
     client = Together(api_key=TOGETHER_API_KEY)
     
     prompt = f"""
@@ -97,6 +106,9 @@ def analyze_with_together(content, title):
 
 def fetch_business_news(topic):
     """Fetch and analyze news articles, returning a list of analysis dictionaries."""
+    if not NEWS_API_KEY:
+        raise ValueError("NEWS_API_KEY is not set in environment variables")
+    
     NEWS_API_URL = f"https://newsapi.org/v2/everything?q={topic}&language=en&apiKey={NEWS_API_KEY}"
     try:
         response = requests.get(NEWS_API_URL, timeout=10)
