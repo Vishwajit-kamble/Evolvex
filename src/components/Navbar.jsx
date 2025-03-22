@@ -6,8 +6,8 @@ export const Navbar = () => {
     <div className="navb">
       <nav className="nav">
         <div className="rg">
-          <Link to="/">Home</Link>
           <Link to="/evolvex-documentation">Evolvex Docs</Link>
+          <Link to="/evolvex-rag-tool">Rag tool</Link>
         </div>
         <Link to="/">
           <h1 className="logo">Evolvex</h1>

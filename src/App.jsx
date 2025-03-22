@@ -19,6 +19,7 @@ import { Documentation } from "./components/Documentation";
 import { Login } from "./components/Login";
 import { Trend } from "./containers/Trend";
 import { Blog } from "./containers/Blog";
+import { Rag } from "./containers/Rag";
 
 // Create an Auth Context
 const AuthContext = React.createContext();
@@ -105,6 +106,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Hero />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/evolvex-rag-tool"
+            element={
+              <ProtectedRoute>
+                <Rag />
               </ProtectedRoute>
             }
           />
