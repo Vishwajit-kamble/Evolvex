@@ -1,0 +1,89 @@
+.Code {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+h2 {
+  text-align: center;
+  color: #333;
+}
+
+.chat-container {
+  margin-bottom: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+
+.user-message {
+  background-color: #e3f2fd;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  word-wrap: break-word;
+}
+
+.output-message {
+  background-color: #f1f8e9;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 5px;
+  word-wrap: break-word;
+}
+
+.code-block {
+  background-color: #2d2d2d;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px 0;
+  overflow-x: auto;
+}
+
+.input-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  resize: vertical;
+  font-size: 14px;
+}
+
+textarea:disabled {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+.submit-btn {
+  padding: 10px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.submit-btn.proc {
+  background-color: #666;
+  cursor: not-allowed;
+}
+
+.submit-btn:hover:not(.proc) {
+  background-color: #115293;
+}
+
+.error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+}
