@@ -33,10 +33,17 @@ body {
 
 .app-title {
   font-size: 1.875rem;
-  font-weight: bold;
+  font-weight: 900;
   color: var(--b-c);
+  letter-spacing: 0.02em;
+}
+input.form-input {
+  color: black;
 }
 
+input.form-input:focus {
+  color: black;
+}
 .account-area {
   display: flex;
   align-items: center;
@@ -146,7 +153,7 @@ body {
   }
 
   .contracts-column {
-    width: 66.666667%;
+    width: fit-content;
   }
 
   .sidebar-column {
@@ -497,4 +504,8 @@ button.landing-cta-btn {
 button.landing-cta-btn:hover {
   background: var(--b-c);
   color: var(--w-c);
+}
+
+span.status-badge.status-in_progress {
+  white-space: nowrap;
 }

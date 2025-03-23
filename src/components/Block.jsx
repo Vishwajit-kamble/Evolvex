@@ -8,7 +8,7 @@ import {
   Users,
 } from "lucide-react";
 
-import './style.css'
+import "./style.css";
 
 const BlockFree = () => {
   // State management
@@ -226,7 +226,7 @@ const BlockFree = () => {
       {/* Header */}
       <header className="header">
         <div className="header-content">
-          <h1 className="app-title">BlockFree</h1>
+          <h1 className="app-title">EVOLVEX BLOCKFREE</h1>
           <div className="account-area">
             {account ? (
               <div className="account-info">
@@ -504,40 +504,39 @@ const BlockFree = () => {
               )}
 
               {/* How It Works */}
-              <div className="card">
-                <h2 className="section-title">How It Works</h2>
+            </div>
+            <div className="card">
+              <h2 className="section-title">How It Works</h2>
 
-                <div className="how-it-works">
-                  <div className="info-item">
-                    <h3 className="info-title">1. Create Smart Contract</h3>
-                    <p className="info-text">
-                      Clients define project details and allocate funds in
-                      escrow.
-                    </p>
-                  </div>
+              <div className="how-it-works">
+                <div className="info-item">
+                  <h3 className="info-title">1. Create Smart Contract</h3>
+                  <p className="info-text">
+                    Clients define project details and allocate funds in escrow.
+                  </p>
+                </div>
 
-                  <div className="info-item">
-                    <h3 className="info-title">2. Accept & Work</h3>
-                    <p className="info-text">
-                      Freelancers accept and complete the project according to
-                      specifications.
-                    </p>
-                  </div>
+                <div className="info-item">
+                  <h3 className="info-title">2. Accept & Work</h3>
+                  <p className="info-text">
+                    Freelancers accept and complete the project according to
+                    specifications.
+                  </p>
+                </div>
 
-                  <div className="info-item">
-                    <h3 className="info-title">3. Automatic Payment</h3>
-                    <p className="info-text">
-                      Funds are released when the client confirms completion.
-                    </p>
-                  </div>
+                <div className="info-item">
+                  <h3 className="info-title">3. Automatic Payment</h3>
+                  <p className="info-text">
+                    Funds are released when the client confirms completion.
+                  </p>
+                </div>
 
-                  <div className="info-item">
-                    <h3 className="info-title">4. Zero Platform Fees</h3>
-                    <p className="info-text">
-                      Direct blockchain transactions with minimal gas fees. No
-                      intermediaries.
-                    </p>
-                  </div>
+                <div className="info-item">
+                  <h3 className="info-title">4. Zero Platform Fees</h3>
+                  <p className="info-text">
+                    Direct blockchain transactions with minimal gas fees. No
+                    intermediaries.
+                  </p>
                 </div>
               </div>
             </div>
