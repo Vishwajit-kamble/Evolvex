@@ -26,12 +26,16 @@ ALLOWED_EXTENSIONS = {"csv", "pdf"}
 
 # Enable CORS for all origins during development
 # For production, specify the exact origin of your React app
-CORS(app, 
-     resources={r"/*": {"origins": "*"}}, 
-     supports_credentials=False,
-     allow_headers=["Content-Type", "Authorization"],
-     methods=["GET", "POST", "OPTIONS"])
-
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173/evolvex-code-agentic-ai",
+            "http://localhost:5173",
+            "https://evolvexai.vercel.app",
+            "https://evolvexai.vercel.app/evolvex-code-agentic-ai",
+        ]
+    }
+})
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
@@ -150,7 +154,7 @@ def index():
                     }), 400
                 split_docs = split_documents(docs)
                 vector_store = setup_vector_store(split_docs)
-                rag_chain = setup_rag_chain(vector_store)
+                rag_chain = setup_rag_chain(vector_store)   
                 
                 response = jsonify({
                     "message": "Files uploaded and processed successfully", 
