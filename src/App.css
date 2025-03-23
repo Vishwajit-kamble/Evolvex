@@ -2,7 +2,9 @@
   --w-c: #f1efe7;
   --b-c: #000000;
 }
-
+code{
+  white-space: pre-line;
+}
 /* main::after {
   background: var(--w-c);
   display: block;

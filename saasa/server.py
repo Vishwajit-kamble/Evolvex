@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template, flash, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from langchain_community.document_loaders import CSVLoader, PyPDFLoader
@@ -15,8 +15,9 @@ UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 ALLOWED_EXTENSIONS = {"csv", "pdf"}
 
-# Enable CORS for the frontend domain
-CORS(app, resources={r"/*": {"origins": "https://evolvexai.vercel.app"}})
+# Enable CORS for all origins during development
+# For production, specify the exact origin of your React app
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -73,17 +74,27 @@ uploaded_files = {"csv": None, "pdf": None}
 @app.route("/", methods=["GET", "POST"])
 def index():
     global rag_chain, uploaded_files
+    print(f"Received {request.method} request")
+
+    # Handle OPTIONS request for CORS preflight
+    if request.method == "OPTIONS":
+        return "", 200
 
     if request.method == "POST":
+        print("POST Headers:", request.headers)
+        print("POST Files:", request.files)
+        print("POST Form:", request.form)
+        
         # Handle file upload
         if "csv_file" in request.files or "pdf_file" in request.files:
+            print("Processing file upload request")
             csv_file = request.files.get("csv_file")
             pdf_file = request.files.get("pdf_file")
 
             csv_path = None
             pdf_path = None
 
-            if csv_file and allowed_file(csv_file.filename):
+            if csv_file and csv_file.filename and allowed_file(csv_file.filename):
                 csv_filename = secure_filename(csv_file.filename)
                 csv_path = os.path.join(
                     app.config["UPLOAD_FOLDER"], csv_filename)
@@ -91,7 +102,7 @@ def index():
                 uploaded_files["csv"] = csv_filename
                 print(f"Saved CSV to: {csv_path}")
 
-            if pdf_file and allowed_file(pdf_file.filename):
+            if pdf_file and pdf_file.filename and allowed_file(pdf_file.filename):
                 pdf_filename = secure_filename(pdf_file.filename)
                 pdf_path = os.path.join(
                     app.config["UPLOAD_FOLDER"], pdf_filename)
@@ -111,24 +122,40 @@ def index():
                 rag_chain = setup_rag_chain(vector_store)
                 return jsonify({"message": "Files uploaded and processed successfully", "files": uploaded_files})
             except Exception as e:
+                print(f"Error processing files: {str(e)}")
                 return jsonify({"error": f"Error processing files: {str(e)}"}), 500
 
         # Handle query submission
         if "query" in request.form:
             query = request.form.get("query").strip()
+            print(f"Processing query: {query}")
+            
             if not query:
                 return jsonify({"error": "Please enter a query"}), 400
             if not rag_chain:
                 return jsonify({"error": "Please upload files first"}), 400
+            
             try:
-                print(f"Processing query: {query}")
                 response = rag_chain.invoke(query)
                 return jsonify({"response": response["result"], "query": query, "files": uploaded_files})
             except Exception as e:
+                print(f"Error processing query: {str(e)}")
                 return jsonify({"error": f"Error querying: {str(e)}"}), 500
 
     return jsonify({"message": "Welcome to the RAG API", "uploaded_files": uploaded_files})
 
 
+@app.errorhandler(500)
+def server_error(e):
+    print(f"Server error: {str(e)}")
+    return jsonify({"error": "Internal server error. Check server logs for details."}), 500
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Endpoint not found"}), 404
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)

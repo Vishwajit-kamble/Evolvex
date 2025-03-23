@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { dark } from "react-syntax-highlighter/dist/esm/styles/prism"; // You can choose a different style
 import "./Code.css"; // Import CSS for styling
+import { monoBlue, monokai } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
 export const Code = () => {
   const [input, setInput] = useState("");
@@ -58,7 +59,7 @@ export const Code = () => {
 
             return !inline ? (
               <SyntaxHighlighter
-                style={dark} // Choose your preferred style
+                style={monokai} // Choose your preferred style
                 language={language}
                 PreTag="div" // Use div instead of pre for better styling control
                 className="code-block"
@@ -68,7 +69,7 @@ export const Code = () => {
                 {/* Remove trailing newline */}
               </SyntaxHighlighter>
             ) : (
-              <code className={className} {...props}>
+              <code style={{whiteSpace:"pre-line"}} className={className} {...props}>
                 {children}
               </code>
             );
@@ -95,7 +96,7 @@ export const Code = () => {
                 item.type === "input" ? "user-message" : "output-message"
               }
             >
-              <strong>{item.type === "input" ? "Input" : "Output"}</strong>
+              <strong>{item.type === "input" ? "User" : "Evolvex"}</strong> 
               {renderMessage(item.text)}
             </div>
           ))}
