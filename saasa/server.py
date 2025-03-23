@@ -14,25 +14,20 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
-# Replace 'precisegoalsin'
 UPLOAD_FOLDER = f"/home/{os.environ.get('USERNAME', 'precisegoalsin')}/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB limit to save CPU
+app.config["MAX_CONTENT_LENGTH"] = 1 * 1024 * 1024  # 1 MB limit
 ALLOWED_EXTENSIONS = {"csv", "pdf"}
 
-# Preload embeddings to minimize CPU usage per request
+# Preload embeddings at startup to save CPU time
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2")
+vector_store = None  # Global vector store
 
-# CORS configuration
+# CORS setup
 CORS(app, resources={
     r"/*": {
-        "origins": [
-            "http://localhost:5173",
-            "http://localhost:5173/evolvex-rag-tool",
-            "https://evolvexai.vercel.app",
-            "https://evolvexai.vercel.app/evolvex-rag-tool"
-        ],
+        "origins": ["https://evolvexai.vercel.app"],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"]
     }
@@ -76,7 +71,6 @@ def split_documents(docs):
 def setup_vector_store(docs):
     try:
         print("Setting up vector store...")
-        # Use preloaded embeddings
         return FAISS.from_documents(docs, embeddings)
     except Exception as e:
         print(f"Error in setup_vector_store: {str(e)}")
@@ -99,6 +93,7 @@ def setup_rag_chain(vector_store):
 
 @app.route("/", methods=["GET", "POST", "OPTIONS"])
 def index():
+    global vector_store
     print(f"Received {request.method} request")
 
     if request.method == "OPTIONS":
