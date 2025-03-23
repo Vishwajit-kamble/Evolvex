@@ -38,7 +38,6 @@ ChartJS.register(
   LineElement
 );
 
-const NEWS_API_KEY = "49e6e8cf2b1d4f0daac6ddea115f9726";
 const TOGETHER_API_KEY = "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM";
 const TWELVE_DATA_API_KEY = "70a740d51b12464aa5b8d95506428a0a";
 
@@ -389,15 +388,13 @@ export const Trend = () => {
       let newsData;
       try {
         // Fetch news articles with timeout to prevent hanging requests
-        const NEWS_API_URL = `https://newsapi.org/v2/everything?q=${encodeURIComponent(topic)}&language=en&apiKey=49e6e8cf2b1d4f0daac6ddea115f9726`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 100000000000); // 10-second timeout
-
+        const NEWS_API_URL = `https://newsapi.org/v3/everything?q=${encodeURIComponent(
+          topic
+        )}&language=en&apiKey=49e6e8cf2b1d4f0daac6ddea115f9726`;
         const response = await fetch(NEWS_API_URL, {
           signal: controller.signal,
           headers: { Accept: "application/json" },
         });
-        clearTimeout(timeoutId);
 
         if (!response.ok) {
           // Check for specific error codes
