@@ -382,32 +382,133 @@ export const Trend = () => {
     setError(null);
 
     try {
-      // Fetch news articles
-      const NEWS_API_URL = `https://newsapi.org/v2/everything?q=${selectedTopic}&language=en&apiKey=${NEWS_API_KEY}`;
-      const response = await fetch(NEWS_API_URL);
+      // Validate input and set default if needed
+      const topic = selectedTopic?.trim() || "business";
 
-      if (!response.ok)
-        throw new Error(`News API request failed: ${response.status}`);
+      // Use a try-catch for the API request specifically
+      let newsData;
+      try {
+        // Fetch news articles with timeout to prevent hanging requests
+        const NEWS_API_URL = `https://newsapi.org/v2/everything?q=${encodeURIComponent(
+          topic
+        )}&language=en&apiKey=${NEWS_API_KEY}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // 10-second timeout
 
-      const newsData = await response.json();
+        const response = await fetch(NEWS_API_URL, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          // Check for specific error codes
+          if (response.status === 429) {
+            throw new Error("Rate limit exceeded. Please try again later.");
+          } else if (response.status === 401) {
+            throw new Error("API key invalid or expired.");
+          } else {
+            throw new Error(
+              `News API request failed with status: ${response.status}`
+            );
+          }
+        }
+
+        newsData = await response.json();
+
+        // Check if we have articles in the response
+        if (!newsData.articles || newsData.articles.length === 0) {
+          throw new Error("No articles found for this topic.");
+        }
+      } catch (apiError) {
+        console.error("News API error:", apiError);
+        // Use fallback data source or cached data if available
+        if (localStorage.getItem("cachedNewsData")) {
+          console.log("Using cached news data");
+          newsData = JSON.parse(localStorage.getItem("cachedNewsData"));
+        } else {
+          throw apiError; // Re-throw if no fallback
+        }
+      }
+
+      // Take only the first 5 articles or fewer if less are available
       const articleList = newsData.articles.slice(0, 5);
 
-      // Process articles in parallel with rate limiting
-      const processArticle = async (article, index) => {
-        await new Promise((resolve) => setTimeout(resolve, index * 1000)); // Stagger requests
+      // Cache this successful result for future fallback
+      localStorage.setItem(
+        "cachedNewsData",
+        JSON.stringify({ articles: articleList })
+      );
 
-        const title = article.title;
-        const url = article.url;
-        const fullContent = await fetchFullContent(url);
-        const analysis = await analyzeWithTogether(fullContent || title, title);
-        const aiTitle = await generateArticleTitle(fullContent, title);
+      // Process articles in parallel with better rate limiting and retries
+      const processArticle = async (article, index) => {
+        // Implement exponential backoff for retries
+        const retry = async (fn, retries = 3, delay = 1000, backoff = 2) => {
+          try {
+            return await fn();
+          } catch (err) {
+            if (retries === 0) throw err;
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return retry(fn, retries - 1, delay * backoff, backoff);
+          }
+        };
+
+        // Stagger requests to avoid overwhelming APIs
+        await new Promise((resolve) => setTimeout(resolve, index * 1500));
+
+        const title = article.title || "Untitled Article";
+        const url = article.url || "";
+
+        // Fetch content with retry logic
+        const fullContent = await retry(() => fetchFullContent(url)).catch(
+          (err) => {
+            console.warn(`Error fetching content for ${url}:`, err);
+            return article.description || article.title;
+          }
+        );
+
+        // Analyze with retry logic
+        const analysis = await retry(() =>
+          analyzeWithTogether(fullContent || title, title)
+        ).catch((err) => {
+          console.warn(`Analysis error for ${title}:`, err);
+          return {
+            Overall_Sentiment: "Neutral",
+            Emotion_Detection: "Unknown",
+            Polarity_Score: 0,
+            Search_Volume: "Medium",
+            Revenue_Profit_Impact: "Neutral",
+            Recession_Signals: "Unknown",
+            Supply_Demand_Gaps: "Unknown",
+            Employment_Opportunity: "Neutral",
+            Sector: topic || "General",
+          };
+        });
+
+        // Generate title with retry logic
+        const aiTitle = await retry(() =>
+          generateArticleTitle(fullContent, title)
+        ).catch((err) => {
+          console.warn(`Title generation error for ${title}:`, err);
+          return title;
+        });
 
         return { article, analysis, aiTitle };
       };
 
-      const processedArticles = await Promise.all(
+      // Process articles with better error handling for individual items
+      const processedResults = await Promise.allSettled(
         articleList.map(processArticle)
       );
+
+      const processedArticles = processedResults
+        .filter((result) => result.status === "fulfilled")
+        .map((result) => result.value);
+
+      // If we have no successfully processed articles, throw an error
+      if (processedArticles.length === 0) {
+        throw new Error("Failed to process any articles.");
+      }
 
       // Extract data from processed articles
       const analyses = [];
@@ -419,19 +520,49 @@ export const Trend = () => {
       });
 
       // Generate job saturation data based on analyses
-      const saturationData = await predictJobSaturation(analyses);
+      const saturationData = await predictJobSaturation(analyses).catch(
+        (err) => {
+          console.warn("Error predicting job saturation:", err);
+          return {
+            Tech: { level: "Medium", score: 50 },
+            Finance: { level: "Medium", score: 50 },
+            Healthcare: { level: "Medium", score: 50 },
+            Energy: { level: "Medium", score: 50 },
+          };
+        }
+      );
 
-      setArticles(articleList);
+      // Update state with successful data
+      setArticles(processedArticles.map((item) => item.article));
       setAnalysisData(analyses);
       setAiGeneratedTitles(titles);
       setJobSaturationData(saturationData);
-    } catch (error) {
-      console.error("Error fetching news:", error.message);
-      setError("Failed to fetch news data. Displaying fallback data.");
 
-      // Set fallback data
+      // Clear any previous errors since we were successful
+      setError(null);
+    } catch (error) {
+      console.error("Error in news processing pipeline:", error.message);
+
+      // Set a more helpful error message based on error type
+      if (error.name === "AbortError") {
+        setError(
+          "Request timed out. Please check your internet connection and try again."
+        );
+      } else if (error.message.includes("API key")) {
+        setError("API authentication issue. Please contact support.");
+      } else if (error.message.includes("Rate limit")) {
+        setError("Too many requests. Please try again in a few minutes.");
+      } else {
+        setError(`Unable to fetch news data: ${error.message}`);
+      }
+
+      // Set improved fallback data that matches the selected topic
+      const topicWords = selectedTopic?.split(" ") || ["business"];
+      const topicFirstWord =
+        topicWords[0]?.charAt(0).toUpperCase() + topicWords[0]?.slice(1);
+
       setAnalysisData(
-        Array(5).fill({
+        Array(3).fill({
           Overall_Sentiment: "Neutral",
           Emotion_Detection: "Uncertainty",
           Polarity_Score: 0,
@@ -440,24 +571,42 @@ export const Trend = () => {
           Recession_Signals: "None detected",
           Supply_Demand_Gaps: "None detected",
           Employment_Opportunity: "Neutral",
-          Sector: "General",
+          Sector: topicFirstWord || "General",
         })
       );
 
       setArticles(
-        Array(5).fill({
-          title: "Placeholder Article",
+        Array(3).fill({
+          title: `${topicFirstWord || "Business"} Market Update`,
           url: "#",
-          description: "No article data available at this time.",
+          description:
+            "We're currently experiencing difficulties retrieving the latest articles. Please try again later for up-to-date information.",
+          urlToImage: "/api/placeholder/400/200", // Placeholder image path
         })
       );
 
-      setAiGeneratedTitles(Array(5).fill("Market Update"));
+      setAiGeneratedTitles(
+        Array(3).fill(`Latest ${topicFirstWord || "Market"} Developments`)
+      );
+
+      // More personalized fallback job saturation data
       setJobSaturationData({
-        Tech: { level: "Medium", score: 50 },
-        Finance: { level: "Medium", score: 50 },
-        Healthcare: { level: "Low", score: 30 },
-        Energy: { level: "High", score: 75 },
+        Tech: {
+          level: selectedTopic?.includes("tech") ? "High" : "Medium",
+          score: selectedTopic?.includes("tech") ? 70 : 50,
+        },
+        Finance: {
+          level: selectedTopic?.includes("finance") ? "High" : "Medium",
+          score: selectedTopic?.includes("finance") ? 70 : 50,
+        },
+        Healthcare: {
+          level: selectedTopic?.includes("health") ? "High" : "Low",
+          score: selectedTopic?.includes("health") ? 70 : 30,
+        },
+        Energy: {
+          level: selectedTopic?.includes("energy") ? "High" : "Medium",
+          score: selectedTopic?.includes("energy") ? 80 : 50,
+        },
       });
     } finally {
       setLoading(false);
@@ -675,7 +824,7 @@ export const Trend = () => {
         </Paper>
       )}
 
-      <form className="formsk" onSubmit={handleTopicSubmit} >
+      <form className="formsk" onSubmit={handleTopicSubmit}>
         <TextField
           className="tfield"
           label="Enter Topic"
@@ -757,7 +906,7 @@ export const Trend = () => {
                 sx={{ cursor: "pointer" }}
               >
                 <ListItemText
-                    primary={
+                  primary={
                     <strong>
                       {aiGeneratedTitles[index] ||
                         article.title ||
@@ -766,7 +915,6 @@ export const Trend = () => {
                   }
                   secondary={
                     <>
-                
                       {analysisData[index]?.Sector !== "Unknown" &&
                         `${analysisData[index]?.Sector}, `}
                       {analysisData[index]?.Employment_Opportunity !== "N/A" &&

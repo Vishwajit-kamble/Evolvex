@@ -583,7 +583,7 @@ p.MuiTypography-root.MuiTypography-body2.MuiListItemText-secondary.css-1a1whku-M
   color: #1976d2;
 }
 
-input:focus {
+.MuiInputBase-root.MuiOutlinedInput-root.MuiInputBase-colorPrimary.Mui-focused.MuiInputBase-formControl.MuiInputBase-sizeSmall.css-quhxjy-MuiInputBase-root-MuiOutlinedInput-root input:focus {
   color: #1976d2;
   /* font-weight: 700; */
 }

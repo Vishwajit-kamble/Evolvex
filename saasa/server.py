@@ -8,6 +8,8 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.chains import RetrievalQA
 from langchain_together import Together
+from dotenv import load_dotenv
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -17,7 +19,11 @@ ALLOWED_EXTENSIONS = {"csv", "pdf"}
 
 # Enable CORS for all origins during development
 # For production, specify the exact origin of your React app
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, 
+     resources={r"/*": {"origins": "*"}}, 
+     supports_credentials=False,
+     allow_headers=["Content-Type", "Authorization"],
+     methods=["GET", "POST", "OPTIONS"])
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -57,7 +63,7 @@ def setup_rag_chain(vector_store):
     print("Setting up RAG chain...")
     llm = Together(
         model="meta-llama/Llama-3-70b-chat-hf",
-        together_api_key=os.environ.get("TOGETHER_API_KEY"),
+        together_api_key=os.dotenv("TOGETHER_API_KEY"),
         temperature=0.7
     )
     return RetrievalQA.from_chain_type(
@@ -71,17 +77,21 @@ rag_chain = None
 uploaded_files = {"csv": None, "pdf": None}
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET", "POST", "OPTIONS"])
 def index():
     global rag_chain, uploaded_files
     print(f"Received {request.method} request")
 
     # Handle OPTIONS request for CORS preflight
     if request.method == "OPTIONS":
-        return "", 200
+        response = jsonify({"status": "success"})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        return response, 200
 
     if request.method == "POST":
-        print("POST Headers:", request.headers)
+        print("POST Headers:", dict(request.headers))
         print("POST Files:", request.files)
         print("POST Form:", request.form)
         
@@ -93,57 +103,60 @@ def index():
 
             csv_path = None
             pdf_path = None
+            
+            # Explicitly check if files exist and have filenames
+            csv_filename = None
+            pdf_filename = None
 
-            if csv_file and csv_file.filename and allowed_file(csv_file.filename):
-                csv_filename = secure_filename(csv_file.filename)
-                csv_path = os.path.join(
-                    app.config["UPLOAD_FOLDER"], csv_filename)
-                csv_file.save(csv_path)
-                uploaded_files["csv"] = csv_filename
-                print(f"Saved CSV to: {csv_path}")
+            if csv_file and csv_file.filename and csv_file.filename != "":
+                if allowed_file(csv_file.filename):
+                    csv_filename = secure_filename(csv_file.filename)
+                    csv_path = os.path.join(app.config["UPLOAD_FOLDER"], csv_filename)
+                    csv_file.save(csv_path)
+                    uploaded_files["csv"] = csv_filename
+                    print(f"Saved CSV to: {csv_path}")
+                else:
+                    return jsonify({"error": "CSV file type not allowed"}), 400
 
-            if pdf_file and pdf_file.filename and allowed_file(pdf_file.filename):
-                pdf_filename = secure_filename(pdf_file.filename)
-                pdf_path = os.path.join(
-                    app.config["UPLOAD_FOLDER"], pdf_filename)
-                pdf_file.save(pdf_path)
-                uploaded_files["pdf"] = pdf_filename
-                print(f"Saved PDF to: {pdf_path}")
+            if pdf_file and pdf_file.filename and pdf_file.filename != "":
+                if allowed_file(pdf_file.filename):
+                    pdf_filename = secure_filename(pdf_file.filename)
+                    pdf_path = os.path.join(app.config["UPLOAD_FOLDER"], pdf_filename)
+                    pdf_file.save(pdf_path)
+                    uploaded_files["pdf"] = pdf_filename
+                    print(f"Saved PDF to: {pdf_path}")
+                else:
+                    return jsonify({"error": "PDF file type not allowed"}), 400
 
             if not csv_path and not pdf_path:
-                return jsonify({"error": "No valid files uploaded"}), 400
+                return jsonify({
+                    "error": "No valid files uploaded",
+                    "files": {"csv": None, "pdf": None}
+                }), 400
 
             try:
                 docs = load_documents(csv_path, pdf_path)
                 if not docs:
-                    return jsonify({"error": "No documents loaded"}), 400
+                    return jsonify({
+                        "error": "No documents loaded",
+                        "files": uploaded_files
+                    }), 400
                 split_docs = split_documents(docs)
                 vector_store = setup_vector_store(split_docs)
                 rag_chain = setup_rag_chain(vector_store)
-                return jsonify({"message": "Files uploaded and processed successfully", "files": uploaded_files})
+                
+                response = jsonify({
+                    "message": "Files uploaded and processed successfully", 
+                    "files": uploaded_files
+                })
+                response.headers.add('Access-Control-Allow-Origin', '*')
+                return response
             except Exception as e:
                 print(f"Error processing files: {str(e)}")
-                return jsonify({"error": f"Error processing files: {str(e)}"}), 500
-
-        # Handle query submission
-        if "query" in request.form:
-            query = request.form.get("query").strip()
-            print(f"Processing query: {query}")
-            
-            if not query:
-                return jsonify({"error": "Please enter a query"}), 400
-            if not rag_chain:
-                return jsonify({"error": "Please upload files first"}), 400
-            
-            try:
-                response = rag_chain.invoke(query)
-                return jsonify({"response": response["result"], "query": query, "files": uploaded_files})
-            except Exception as e:
-                print(f"Error processing query: {str(e)}")
-                return jsonify({"error": f"Error querying: {str(e)}"}), 500
-
-    return jsonify({"message": "Welcome to the RAG API", "uploaded_files": uploaded_files})
-
+                return jsonify({
+                    "error": f"Error processing files: {str(e)}",
+                    "files": uploaded_files
+                }), 500
 
 @app.errorhandler(500)
 def server_error(e):
