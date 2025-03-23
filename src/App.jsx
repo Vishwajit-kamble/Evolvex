@@ -20,6 +20,7 @@ import { Login } from "./components/Login";
 import { Trend } from "./containers/Trend";
 import { Blog } from "./containers/Blog";
 import { Rag } from "./containers/Rag";
+import BlockFree from "./components/Block";
 
 // Create an Auth Context
 const AuthContext = React.createContext();
@@ -114,6 +115,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Rag />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/evolvex-blockchain"
+            element={
+              <ProtectedRoute>
+                <BlockFree />
               </ProtectedRoute>
             }
           />

@@ -1,0 +1,500 @@
+/* General Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  color: #1a202c;
+  background-color: #f7fafc;
+  line-height: 1.5;
+}
+
+.app-container {
+  min-height: 100vh;
+  padding: 1rem;
+}
+
+/* Header Styles */
+.header {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.app-title {
+  font-size: 1.875rem;
+  font-weight: bold;
+  color: var(--b-c);
+}
+
+.account-area {
+  display: flex;
+  align-items: center;
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.account-address {
+  background-color: #dbeafe;
+  color: #1e40af;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.account-balance {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+}
+
+.switch-role-btn {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.switch-role-btn:hover {
+  background-color: #bfdbfe;
+}
+
+.connect-wallet-btn {
+  background-color: var(--b-c);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1.5rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.connect-wallet-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.connect-wallet-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Main Content Styles */
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Notification Styles */
+.notification {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
+.notification-success {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.notification-error {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.notification-content {
+  display: flex;
+  align-items: center;
+}
+
+.notification-icon {
+  height: 1.25rem;
+  width: 1.25rem;
+  margin-right: 0.5rem;
+}
+
+/* Dashboard Layout */
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-layout {
+    flex-direction: row;
+  }
+
+  .contracts-column {
+    width: 66.666667%;
+  }
+
+  .sidebar-column {
+    width: 33.333333%;
+  }
+}
+
+/* Card Styles */
+.card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Contract Cards */
+.contracts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contract-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.contract-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.contract-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+
+.status-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+}
+
+.status-pending {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-in_progress {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.status-completed {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+
+.status-paid {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.contract-description {
+  margin-top: 0.5rem;
+  color: #4b5563;
+}
+
+.contract-details {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.detail-badge {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  font-size: 0.875rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+}
+
+.detail-icon {
+  height: 1rem;
+  width: 1rem;
+  margin-right: 0.25rem;
+}
+
+.contract-actions {
+  margin-top: 1rem;
+}
+
+.action-btn {
+  font-weight: 500;
+  padding: 0.25rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+  color: white;
+}
+
+.action-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.accept-btn {
+  background-color: var(--b-c);
+}
+
+.accept-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.complete-btn {
+  background-color: #7c3aed;
+}
+
+.complete-btn:hover {
+  background-color: #6d28d9;
+}
+
+.pay-btn {
+  background-color: #10b981;
+}
+
+.pay-btn:hover {
+  background-color: #059669;
+}
+
+.no-data-msg {
+  color: #6b7280;
+}
+
+/* Form Styles */
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  width: 100%;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.25rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  outline: none;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.submit-btn {
+  width: 100%;
+  background-color: var(--b-c);
+  color: white;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.submit-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Freelancer Dashboard Styles */
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-card {
+  padding: 1rem;
+  border-radius: 0.375rem;
+}
+
+.stat-active {
+  background-color: #dbeafe;
+}
+
+.stat-pending {
+  background-color: #fef3c7;
+}
+
+.stat-completed {
+  background-color: #dcfce7;
+}
+
+.stat-awaiting {
+  background-color: #ede9fe;
+}
+
+.stat-title {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.stat-active .stat-title {
+  color: #1e40af;
+}
+
+.stat-pending .stat-title {
+  color: #92400e;
+}
+
+.stat-completed .stat-title {
+  color: #166534;
+}
+
+.stat-awaiting .stat-title {
+  color: #5b21b6;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* How It Works Styles */
+.how-it-works {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.info-item {
+  margin-bottom: 0.75rem;
+}
+
+.info-title {
+  font-weight: 500;
+}
+
+.info-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+/* Landing Page Styles */
+.landing-container {
+  max-width: 768px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+.landing-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.landing-subtitle {
+  color: #4b5563;
+  margin-bottom: 2rem;
+}
+
+.features-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+@media (min-width: 768px) {
+  .features-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.feature-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.feature-icon {
+  height: 3rem;
+  width: 3rem;
+  margin: 0 auto 1rem auto;
+  color: var(--b-c);
+}
+
+.feature-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.feature-description {
+  color: #4b5563;
+}
+button.landing-cta-btn {
+  padding: 1em 2em;
+  background: var(--w-c);
+  border-radius: 2rem;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all ease 0.25s;
+}
+
+button.landing-cta-btn:hover {
+  background: var(--b-c);
+  color: var(--w-c);
+}

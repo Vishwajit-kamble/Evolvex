@@ -23,6 +23,7 @@ ALLOWED_EXTENSIONS = {"csv", "pdf"}
 embeddings = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-MiniLM-L6-v2")
 vector_store = None  # Global vector store
+rag_chain = None     # Global RAG chain
 
 # CORS setup
 CORS(app, resources={
@@ -91,71 +92,126 @@ def setup_rag_chain(vector_store):
         raise
 
 
-@app.route("/", methods=["GET", "POST", "OPTIONS"])
-def index():
-    global vector_store
-    print(f"Received {request.method} request")
+@app.route("/upload", methods=["POST", "OPTIONS"])
+def upload_files():
+    global vector_store, rag_chain
+    print(f"Received {request.method} request to /upload")
 
     if request.method == "OPTIONS":
         response = jsonify({"status": "success"})
         response.headers.add("Access-Control-Allow-Origin",
                              "https://evolvexai.vercel.app")
         response.headers.add(
-            "Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+            "Access-Control-Allow-Methods", "POST, OPTIONS")
         response.headers.add("Access-Control-Allow-Headers", "Content-Type")
         return response, 200
 
-    if request.method == "POST":
-        print("POST Headers:", dict(request.headers))
-        print("POST Files:", request.files)
+    print("POST Headers:", dict(request.headers))
+    print("POST Files:", request.files)
 
-        csv_file = request.files.get("csv_file")
-        pdf_file = request.files.get("pdf_file")
-        csv_path = None
-        pdf_path = None
+    csv_file = request.files.get("csv_file")
+    pdf_file = request.files.get("pdf_file")
+    csv_path = None
+    pdf_path = None
 
-        try:
-            if csv_file and csv_file.filename:
-                if not allowed_file(csv_file.filename):
-                    return jsonify({"error": "CSV file type not allowed"}), 400
-                csv_filename = secure_filename(csv_file.filename)
-                csv_path = os.path.join(
-                    app.config["UPLOAD_FOLDER"], csv_filename)
-                csv_file.save(csv_path)
-                print(f"Saved CSV to: {csv_path}")
+    try:
+        if csv_file and csv_file.filename:
+            if not allowed_file(csv_file.filename):
+                return jsonify({"error": "CSV file type not allowed"}), 400
+            csv_filename = secure_filename(csv_file.filename)
+            csv_path = os.path.join(
+                app.config["UPLOAD_FOLDER"], csv_filename)
+            csv_file.save(csv_path)
+            print(f"Saved CSV to: {csv_path}")
 
-            if pdf_file and pdf_file.filename:
-                if not allowed_file(pdf_file.filename):
-                    return jsonify({"error": "PDF file type not allowed"}), 400
-                pdf_filename = secure_filename(pdf_file.filename)
-                pdf_path = os.path.join(
-                    app.config["UPLOAD_FOLDER"], pdf_filename)
-                pdf_file.save(pdf_path)
-                print(f"Saved PDF to: {pdf_path}")
+        if pdf_file and pdf_file.filename:
+            if not allowed_file(pdf_file.filename):
+                return jsonify({"error": "PDF file type not allowed"}), 400
+            pdf_filename = secure_filename(pdf_file.filename)
+            pdf_path = os.path.join(
+                app.config["UPLOAD_FOLDER"], pdf_filename)
+            pdf_file.save(pdf_path)
+            print(f"Saved PDF to: {pdf_path}")
 
-            if not csv_path and not pdf_path:
-                return jsonify({"error": "No valid files uploaded"}), 400
+        if not csv_path and not pdf_path:
+            return jsonify({"error": "No valid files uploaded"}), 400
 
-            docs = load_documents(csv_path, pdf_path)
-            if not docs:
-                return jsonify({"error": "No documents loaded from files"}), 400
+        docs = load_documents(csv_path, pdf_path)
+        if not docs:
+            return jsonify({"error": "No documents loaded from files"}), 400
 
-            split_docs = split_documents(docs)
-            vector_store = setup_vector_store(split_docs)
-            rag_chain = setup_rag_chain(vector_store)
+        split_docs = split_documents(docs)
+        vector_store = setup_vector_store(split_docs)
+        rag_chain = setup_rag_chain(vector_store)
 
+        response = jsonify(
+            {"message": "Files uploaded and processed successfully"})
+        response.headers.add("Access-Control-Allow-Origin",
+                             "https://evolvexai.vercel.app")
+        return response, 200
+
+    except Exception as e:
+        print(f"Error processing request: {str(e)}")
+        response = jsonify({"error": f"Error processing files: {str(e)}"})
+        response.headers.add("Access-Control-Allow-Origin",
+                             "https://evolvexai.vercel.app")
+        return response, 500
+
+
+@app.route("/query", methods=["POST", "OPTIONS"])
+def query_documents():
+    global rag_chain
+    print(f"Received {request.method} request to /query")
+
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "success"})
+        response.headers.add("Access-Control-Allow-Origin",
+                             "https://evolvexai.vercel.app")
+        response.headers.add(
+            "Access-Control-Allow-Methods", "POST, OPTIONS")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        return response, 200
+
+    try:
+        if not rag_chain:
             response = jsonify(
-                {"message": "Files uploaded and processed successfully"})
+                {"error": "No documents have been uploaded and processed yet"})
             response.headers.add("Access-Control-Allow-Origin",
                                  "https://evolvexai.vercel.app")
-            return response, 200
+            return response, 400
 
-        except Exception as e:
-            print(f"Error processing request: {str(e)}")
-            response = jsonify({"error": f"Error processing files: {str(e)}"})
+        data = request.get_json()
+        if not data or 'query' not in data:
+            response = jsonify({"error": "Query parameter is required"})
             response.headers.add("Access-Control-Allow-Origin",
                                  "https://evolvexai.vercel.app")
-            return response, 500
+            return response, 400
+
+        query = data['query']
+        print(f"Processing query: {query}")
+
+        result = rag_chain({"query": query})
+        answer = result.get('result', 'No answer found')
+
+        response = jsonify({"answer": answer})
+        response.headers.add("Access-Control-Allow-Origin",
+                             "https://evolvexai.vercel.app")
+        return response, 200
+
+    except Exception as e:
+        print(f"Error processing query: {str(e)}")
+        response = jsonify({"error": f"Error processing query: {str(e)}"})
+        response.headers.add("Access-Control-Allow-Origin",
+                             "https://evolvexai.vercel.app")
+        return response, 500
+
+
+@app.route("/", methods=["GET"])
+def index():
+    response = jsonify({"status": "API is running"})
+    response.headers.add("Access-Control-Allow-Origin",
+                         "https://evolvexai.vercel.app")
+    return response, 200
 
 
 @app.errorhandler(413)
