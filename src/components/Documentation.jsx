@@ -40,7 +40,7 @@ export const Documentation = () => {
           </div>
           <div>
             <TbAutomation />
-            <p>Automated Workflow</p>
+            <p>Rag Implementation</p>
           </div>
         </div>
         <div className="c3"></div>

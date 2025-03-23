@@ -388,7 +388,7 @@ export const Trend = () => {
       let newsData;
       try {
         // Fetch news articles with timeout to prevent hanging requests
-        const NEWS_API_URL = `https://newsapi.org/v3/everything?q=${encodeURIComponent(
+        const NEWS_API_URL = `https://newsapi.org/v2/everything?q=${encodeURIComponent(
           topic
         )}&language=en&apiKey=49e6e8cf2b1d4f0daac6ddea115f9726`;
         const response = await fetch(NEWS_API_URL, {

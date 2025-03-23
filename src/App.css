@@ -684,3 +684,11 @@ form.i {
   text-align: center;
   margin: 1%;
 }
+.MuiBox-root.css-1aqd2os {
+  margin: 0 10%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+} 
