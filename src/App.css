@@ -674,6 +674,13 @@ form.i {
 .sg {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6%;
+  justify-content: center;
+  gap: 2%;
+}
+.rag-container p {
+  text-align: center;
+}
+.rag-container h2 {
+  text-align: center;
+  margin: 1%;
 }

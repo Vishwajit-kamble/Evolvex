@@ -72,37 +72,39 @@ export const Rag = () => {
     <div className="rag-container" style={{ padding: "20px" }}>
       <h2>File Upload for RAG Processing</h2>
 
-      <form onSubmit={handleFileUpload}>
-        <div style={{ marginBottom: "15px" }}>
-          <label
-            htmlFor="csvFile"
-            style={{ display: "block", marginBottom: "5px" }}
-          >
-            Upload CSV:
-          </label>
-          <input
-            type="file"
-            id="csvFile"
-            accept=".csv"
-            onChange={handleCsvChange}
-            style={{ display: "block" }}
-          />
-        </div>
+      <form className="i" onSubmit={handleFileUpload}>
+        <div className="sg">
+          <div className="inpt l" style={{ marginBottom: "15px" }}>
+            <label
+              htmlFor="csvFile"
+              style={{ display: "block", marginBottom: "5px" }}
+            >
+              Upload CSV:
+            </label>
+            <input
+              type="file"
+              id="csvFile"
+              accept=".csv"
+              onChange={handleCsvChange}
+              style={{ display: "block" }}
+            />
+          </div>
 
-        <div style={{ marginBottom: "15px" }}>
-          <label
-            htmlFor="pdfFile"
-            style={{ display: "block", marginBottom: "5px" }}
-          >
-            Upload PDF:
-          </label>
-          <input
-            type="file"
-            id="pdfFile"
-            accept=".pdf"
-            onChange={handlePdfChange}
-            style={{ display: "block" }}
-          />
+          <div className="inpt r" style={{ marginBottom: "15px" }}>
+            <label
+              htmlFor="pdfFile"
+              style={{ display: "block", marginBottom: "5px" }}
+            >
+              Upload PDF:
+            </label>
+            <input
+              type="file"
+              id="pdfFile"
+              accept=".pdf"
+              onChange={handlePdfChange}
+              style={{ display: "block" }}
+            />
+          </div>
         </div>
 
         <button
