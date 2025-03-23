@@ -11,7 +11,14 @@ from langchain_together import Together
 from dotenv import load_dotenv
 load_dotenv()
 
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
+
 app = Flask(__name__)
+app.after_request(add_cors_headers)
 app.secret_key = "supersecretkey"
 UPLOAD_FOLDER = "uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER

@@ -91,7 +91,7 @@ export const Login = () => {
             {isSignUp ? "Sign In" : "Sign Up"}
           </button>
         </p>
-      </div>
+      </div>  
       <img src={sorc} alt="Market Analysis" className="mrktan" />
     </div>
   );
