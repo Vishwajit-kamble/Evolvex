@@ -38,7 +38,7 @@ ChartJS.register(
   LineElement
 );
 
-const TOGETHER_API_KEY = "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM";
+const TOGETHER_API_KEY = import.meta.env.VITE_TOGETHER_API_KEY || "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM";
 const TWELVE_DATA_API_KEY = "70a740d51b12464aa5b8d95506428a0a";
 
 // Fallback data in case APIs fail
@@ -384,6 +384,10 @@ export const Trend = () => {
       // Validate input and set default if needed
       const topic = selectedTopic;
 
+      // Create AbortController for this request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       // Use a try-catch for the API request specifically
       let newsData;
       try {
@@ -411,11 +415,16 @@ export const Trend = () => {
 
         newsData = await response.json();
 
+        // Clear the timeout since request completed successfully
+        clearTimeout(timeoutId);
+
         // Check if we have articles in the response
         if (!newsData.articles || newsData.articles.length === 0) {
           throw new Error("No articles found for this topic.");
         }
       } catch (apiError) {
+        // Clear the timeout since request failed
+        clearTimeout(timeoutId);
         console.error("News API error:", apiError);
         // Use fallback data source or cached data if available
         if (localStorage.getItem("cachedNewsData")) {

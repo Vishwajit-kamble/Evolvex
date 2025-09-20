@@ -17,14 +17,14 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api2/, ""),
       },
       "/api3": {
-        target: "https://falcons-algoforge.onrender.com",
+        target: "https://bitlords-algoforge.onrender.com",
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api3/, ""),
       },
       "/api": {
-        target: "https://localhost:5000",
+        target: "http://localhost:5000",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api3/, ""),
+        rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
   },

@@ -28,7 +28,7 @@ export const Footer = () => {
           <Link to="/evolvex-documentation">Documentation</Link>
         </li>
       </ul>
-      <p className="cpy">All right reserved - Falcons 2025</p>
+      <p className="cpy">All right reserved - Bit Lords 2025</p>
     </div>
   );
 };

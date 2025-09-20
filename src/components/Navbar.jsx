@@ -7,7 +7,7 @@ export const Navbar = () => {
       <nav className="nav">
         <div className="rg">
           <Link to="/evolvex-documentation">Evolvex Docs</Link>
-          <Link to="http://127.0.0.1:5000">Rag tool</Link>
+          <Link to="/evolvex-rag-tool">Rag tool</Link>
         </div>
         <Link to="/">
           <h1 className="logo">Evolvex</h1>
