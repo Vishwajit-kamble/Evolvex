@@ -2,6 +2,10 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Typography, CircularProgress, Box, Button, Alert } from "@mui/material";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
+import "highlight.js/styles/github.css";
 
 const TOGETHER_API_KEY = import.meta.env.VITE_TOGETHER_API_KEY || "tgp_v1_ykDLFqDZq-VLfFEBoiILW0JtxeDmXsCATSI_UgK43NM";
 const UNSPLASH_API_KEY = import.meta.env.VITE_UNSPLASH_API_KEY;
@@ -12,17 +16,42 @@ export const Blog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
+  
+  // Test markdown content for debugging
+  const testMarkdown = `# Test Blog Post
+
+## Introduction
+This is a **test** blog post to verify React Markdown is working.
+
+### Key Points
+- Point 1: This is important
+- Point 2: This is also important
+- Point 3: Final point
+
+## Code Example
+\`\`\`javascript
+const example = "React Markdown test";
+console.log(example);
+\`\`\`
+
+## Conclusion
+This should render properly with React Markdown!`;
   const location = useLocation();
   const { article, analysis } = location.state || {};
 
   const generateBlogContent = async (title, analysis) => {
     const prompt = `
-      Write a concise, engaging blog post (200-300 words) based on the following news article title and analysis data. 
+      Write a comprehensive, engaging blog post (300-400 words) based on the following news article title and analysis data. 
       
       Requirements:
-      - Keep it short and punchy
-      - Use bullet points for key insights
-      - Include a brief introduction, main points in bullets, and a short conclusion
+      - Use proper markdown formatting with headers, lists, and emphasis
+      - Include a compelling introduction with the main headline
+      - Use bullet points and numbered lists for key insights
+      - Add blockquotes for important statements
+      - Include tables if relevant for data presentation
+      - Use **bold** and *italic* text for emphasis
+      - Include code blocks for any technical terms or metrics
+      - End with a strong conclusion and call-to-action
       - Use a professional yet conversational tone
       - Make it scannable and easy to read
       - Don't repeat analysis values verbatim - interpret them naturally
@@ -30,7 +59,7 @@ export const Blog = () => {
       Title: ${title}
       Analysis Data: ${JSON.stringify(analysis)}
       
-      Format the response with clear sections and bullet points. Provide as plain text without JSON formatting.
+      Format the response using proper markdown syntax with headers (##), bullet points (-), numbered lists (1.), blockquotes (>), tables, and emphasis.
     `;
 
     // Try Together API first
@@ -122,32 +151,48 @@ export const Blog = () => {
     return `
 # ${title}
 
-## Quick Take
+> **Market Analysis Alert**: Key insights for the ${analysis?.Sector || 'general'} sector reveal important trends that could impact your business strategy.
 
-Market analysis reveals key insights for the ${analysis?.Sector || 'general'} sector. Here's what you need to know:
+## 📊 Executive Summary
 
-## Key Findings
+Market analysis reveals key insights for the **${analysis?.Sector || 'general'}** sector. Here's what you need to know:
 
-• **Market Sentiment**: ${analysis?.Overall_Sentiment || 'Neutral'} outlook - ${analysis?.Overall_Sentiment === 'Positive' ? 'optimistic signals' : analysis?.Overall_Sentiment === 'Negative' ? 'cautious approach needed' : 'balanced conditions'}
+## 🔍 Key Findings
 
-• **Revenue Impact**: ${analysis?.Revenue_Profit_Impact || 'Moderate'} effect on profit margins
+### Market Sentiment Analysis
+- **Overall Sentiment**: ${analysis?.Overall_Sentiment || 'Neutral'} outlook
+- **Impact Assessment**: ${analysis?.Overall_Sentiment === 'Positive' ? '✅ Optimistic signals detected' : analysis?.Overall_Sentiment === 'Negative' ? '⚠️ Cautious approach needed' : '⚖️ Balanced conditions'}
 
-• **Job Market**: ${analysis?.Employment_Opportunity || 'Stable'} employment opportunities
+### Financial Impact
+- **Revenue Impact**: ${analysis?.Revenue_Profit_Impact || 'Moderate'} effect on profit margins
+- **Cost Structure**: ${analysis?.Supply_Demand_Gaps || 'Balanced'} supply and demand dynamics
 
-• **Supply Chain**: ${analysis?.Supply_Demand_Gaps || 'Balanced'} supply and demand dynamics
+### Employment Landscape
+- **Job Market**: ${analysis?.Employment_Opportunity || 'Stable'} employment opportunities
+- **Workforce Trends**: ${analysis?.Emotion_Detection || 'Mixed'} market emotions detected
 
-• **Emotion Detection**: ${analysis?.Emotion_Detection || 'Mixed'} market emotions detected
+## 📋 Strategic Action Items
 
-## Action Items
+1. **Monitor** sentiment changes closely
+2. **Optimize** operations for efficiency  
+3. **Plan** strategically for market shifts
+4. **Implement** risk management protocols
 
-• Monitor sentiment changes closely
-• Optimize operations for efficiency
-• Plan strategically for market shifts
-• Implement risk management protocols
+## 📈 Data Insights Table
 
-## Bottom Line
+| Metric | Status | Impact |
+|--------|--------|--------|
+| Market Sentiment | ${analysis?.Overall_Sentiment || 'Neutral'} | ${analysis?.Overall_Sentiment === 'Positive' ? 'High' : analysis?.Overall_Sentiment === 'Negative' ? 'High' : 'Medium'} |
+| Revenue Impact | ${analysis?.Revenue_Profit_Impact || 'Moderate'} | Medium |
+| Employment | ${analysis?.Employment_Opportunity || 'Stable'} | Low-Medium |
 
-The ${analysis?.Sector || 'market'} shows ${analysis?.Overall_Sentiment?.toLowerCase() || 'stable'} conditions. Stay informed, stay adaptable, and use data-driven insights for decision-making.
+## 🎯 Bottom Line
+
+The **${analysis?.Sector || 'market'}** shows **${analysis?.Overall_Sentiment?.toLowerCase() || 'stable'}** conditions. 
+
+> Stay informed, stay adaptable, and use data-driven insights for decision-making.
+
+---
 
 *Analysis based on current market data - consult additional sources for comprehensive planning.*
     `;
@@ -246,95 +291,249 @@ The ${analysis?.Sector || 'market'} shows ${analysis?.Overall_Sentiment?.toLower
   };
 
   const formatBlogContent = (content) => {
-    if (!content) return null;
+    if (!content) {
+      console.log("No content to format");
+      return (
+        <Typography variant="body1" color="text.secondary">
+          No content available. Please try generating the blog again.
+        </Typography>
+      );
+    }
     
-    // Split content into lines
-    const lines = content.split('\n');
-    const elements = [];
-    let currentList = [];
-    let listType = null;
+    console.log("Formatting blog content:", content);
     
-    const flushList = () => {
-      if (currentList.length > 0) {
-        const ListComponent = listType === 'ul' ? 'ul' : 'ol';
-        elements.push(
-          <ListComponent key={`list-${elements.length}`}>
-            {currentList.map((item, index) => (
-              <li key={index}>{item}</li>
-            ))}
-          </ListComponent>
-        );
-        currentList = [];
-        listType = null;
-      }
-    };
-    
-    lines.forEach((line, index) => {
-      const trimmedLine = line.trim();
-      
-      if (!trimmedLine) {
-        flushList();
-        return;
-      }
-      
-      // Handle headers
-      if (trimmedLine.startsWith('# ')) {
-        flushList();
-        elements.push(
-          <h1 key={index}>{trimmedLine.substring(2)}</h1>
-        );
-      } else if (trimmedLine.startsWith('## ')) {
-        flushList();
-        elements.push(
-          <h2 key={index}>{trimmedLine.substring(3)}</h2>
-        );
-      } else if (trimmedLine.startsWith('### ')) {
-        flushList();
-        elements.push(
-          <h3 key={index}>{trimmedLine.substring(4)}</h3>
-        );
-      }
-      // Handle bullet points
-      else if (trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ')) {
-        if (listType !== 'ul') {
-          flushList();
-          listType = 'ul';
-        }
-        currentList.push(trimmedLine.substring(2));
-      }
-      // Handle numbered lists
-      else if (/^\d+\.\s/.test(trimmedLine)) {
-        if (listType !== 'ol') {
-          flushList();
-          listType = 'ol';
-        }
-        currentList.push(trimmedLine.replace(/^\d+\.\s/, ''));
-      }
-      // Handle regular paragraphs
-      else {
-        flushList();
-        // Process inline formatting
-        let processedLine = trimmedLine;
-        
-        // Handle bold text
-        processedLine = processedLine.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        
-        // Handle italic text
-        processedLine = processedLine.replace(/\*(.*?)\*/g, '<em>$1</em>');
-        
-        elements.push(
-          <p 
-            key={index} 
-            dangerouslySetInnerHTML={{ __html: processedLine }}
-          />
-        );
-      }
-    });
-    
-    // Flush any remaining list
-    flushList();
-    
-    return elements;
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        rehypePlugins={[rehypeHighlight]}
+        components={{
+          h1: ({ children }) => (
+            <Typography 
+              variant="h4" 
+              component="h1" 
+              sx={{ 
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: '#333',
+                marginBottom: '1rem',
+                borderBottom: '2px solid #333',
+                paddingBottom: '0.5rem'
+              }}
+            >
+              {children}
+            </Typography>
+          ),
+          h2: ({ children }) => (
+            <Typography 
+              variant="h5" 
+              component="h2" 
+              sx={{ 
+                fontSize: '1.5rem',
+                fontWeight: '600',
+                color: '#333',
+                marginTop: '1.5rem',
+                marginBottom: '1rem',
+                borderLeft: '4px solid #333',
+                paddingLeft: '1rem'
+              }}
+            >
+              {children}
+            </Typography>
+          ),
+          h3: ({ children }) => (
+            <Typography 
+              variant="h6" 
+              component="h3" 
+              sx={{ 
+                fontSize: '1.25rem',
+                fontWeight: '600',
+                color: '#333',
+                marginTop: '1rem',
+                marginBottom: '0.5rem'
+              }}
+            >
+              {children}
+            </Typography>
+          ),
+          p: ({ children }) => (
+            <Typography 
+              component="p" 
+              sx={{ 
+                fontSize: '1.1rem',
+                lineHeight: 1.7,
+                color: '#333',
+                marginBottom: '1.5rem',
+                textAlign: 'justify'
+              }}
+            >
+              {children}
+            </Typography>
+          ),
+          ul: ({ children }) => (
+            <Box 
+              component="ul" 
+              sx={{ 
+                marginLeft: '1.5rem',
+                marginBottom: '1.5rem',
+                paddingLeft: '1rem'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          ol: ({ children }) => (
+            <Box 
+              component="ol" 
+              sx={{ 
+                marginLeft: '1.5rem',
+                marginBottom: '1.5rem',
+                paddingLeft: '1rem'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          li: ({ children }) => (
+            <Typography 
+              component="li" 
+              sx={{ 
+                fontSize: '1.1rem',
+                lineHeight: 1.7,
+                color: '#333',
+                marginBottom: '0.75rem',
+                '&::marker': {
+                  color: '#333',
+                  fontSize: '1.2rem'
+                }
+              }}
+            >
+              {children}
+            </Typography>
+          ),
+          strong: ({ children }) => (
+            <Box 
+              component="strong" 
+              sx={{ 
+                fontWeight: '600',
+                color: '#333',
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                padding: '0.1rem 0.3rem',
+                borderRadius: '0.25rem'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          em: ({ children }) => (
+            <Box 
+              component="em" 
+              sx={{ 
+                fontStyle: 'italic',
+                color: '#333'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          code: ({ children, className }) => {
+            const isInline = !className;
+            return isInline ? (
+              <Box 
+                component="code" 
+                sx={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                  padding: '0.2rem 0.4rem',
+                  borderRadius: '0.25rem',
+                  fontFamily: 'monospace',
+                  fontSize: '0.9em'
+                }}
+              >
+                {children}
+              </Box>
+            ) : (
+              <Box 
+                component="pre" 
+                sx={{ 
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  padding: '1rem',
+                  borderRadius: '0.5rem',
+                  overflow: 'auto',
+                  marginBottom: '1rem'
+                }}
+              >
+                <Box 
+                  component="code" 
+                  className={className}
+                  sx={{ 
+                    fontFamily: 'monospace',
+                    fontSize: '0.9rem'
+                  }}
+                >
+                  {children}
+                </Box>
+              </Box>
+            );
+          },
+          blockquote: ({ children }) => (
+            <Box 
+              component="blockquote" 
+              sx={{ 
+                borderLeft: '4px solid var(--b-c)',
+                paddingLeft: '1rem',
+                marginLeft: '0',
+                marginBottom: '1rem',
+                fontStyle: 'italic',
+                backgroundColor: 'rgba(0, 0, 0, 0.02)',
+                padding: '1rem',
+                borderRadius: '0 0.5rem 0.5rem 0'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          table: ({ children }) => (
+            <Box 
+              component="table" 
+              sx={{ 
+                width: '100%',
+                borderCollapse: 'collapse',
+                marginBottom: '1rem',
+                border: '1px solid rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          th: ({ children }) => (
+            <Box 
+              component="th" 
+              sx={{ 
+                padding: '0.75rem',
+                backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                border: '1px solid rgba(0, 0, 0, 0.1)',
+                fontWeight: '600',
+                textAlign: 'left'
+              }}
+            >
+              {children}
+            </Box>
+          ),
+          td: ({ children }) => (
+            <Box 
+              component="td" 
+              sx={{ 
+                padding: '0.75rem',
+                border: '1px solid rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              {children}
+            </Box>
+          )
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
   };
 
   const retryGeneration = () => {
@@ -365,6 +564,8 @@ The ${analysis?.Sector || 'market'} shows ${analysis?.Overall_Sentiment?.toLower
       setBlogContent(content);
       setImageUrl(image);
       console.log("Blog content generated successfully");
+      console.log("Generated content:", content);
+      console.log("Content length:", content?.length);
     } catch (error) {
       console.error("Error in fetchBlogData:", error);
       setError("An error occurred while generating the blog content. Please try again.");
@@ -407,9 +608,9 @@ The ${analysis?.Sector || 'market'} shows ${analysis?.Overall_Sentiment?.toLower
         maxWidth: "900px",
         margin: "0 auto",
         fontFamily: "Arial, sans-serif",
-        background: "var(--w-c)",
+        background: "#f5f5f5",
         minHeight: "100vh",
-        color: "var(--b-c)"
+        color: "#333"
       }}
     >
       {error && (
@@ -491,67 +692,35 @@ The ${analysis?.Sector || 'market'} shows ${analysis?.Overall_Sentiment?.toLower
           background: "white",
           padding: "2rem",
           borderRadius: "1rem",
-          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-          '& h1': {
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: 'var(--b-c)',
-            marginBottom: '1rem',
-            borderBottom: '2px solid var(--b-c)',
-            paddingBottom: '0.5rem'
-          },
-          '& h2': {
-            fontSize: '1.5rem',
-            fontWeight: '600',
-            color: 'var(--b-c)',
-            marginTop: '1.5rem',
-            marginBottom: '1rem',
-            borderLeft: '4px solid var(--b-c)',
-            paddingLeft: '1rem'
-          },
-          '& h3': {
-            fontSize: '1.25rem',
-            fontWeight: '600',
-            color: 'var(--b-c)',
-            marginTop: '1rem',
-            marginBottom: '0.5rem'
-          },
-          '& p': {
-            fontSize: '1.1rem',
-            lineHeight: 1.7,
-            color: 'var(--b-c)',
-            marginBottom: '1.5rem',
-            textAlign: 'justify'
-          },
-          '& ul': {
-            marginLeft: '1.5rem',
-            marginBottom: '1.5rem',
-            paddingLeft: '1rem'
-          },
-          '& li': {
-            fontSize: '1.1rem',
-            lineHeight: 1.7,
-            color: 'var(--b-c)',
-            marginBottom: '0.75rem',
-            '&::marker': {
-              color: 'var(--b-c)',
-              fontSize: '1.2rem'
-            }
-          },
-          '& strong': {
-            fontWeight: '600',
-            color: 'var(--b-c)',
-            backgroundColor: 'rgba(0, 0, 0, 0.05)',
-            padding: '0.1rem 0.3rem',
-            borderRadius: '0.25rem'
-          },
-          '& em': {
-            fontStyle: 'italic',
-            color: 'var(--b-c)'
-          }
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
         }}
       >
-        {formatBlogContent(blogContent)}
+        {blogContent ? formatBlogContent(blogContent) : (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="text.secondary" mb={2}>
+              No blog content available
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mb={3}>
+              The blog content could not be generated. Please try again.
+            </Typography>
+            <Box mb={2}>
+              <Button 
+                variant="outlined" 
+                onClick={() => setBlogContent(testMarkdown)}
+                sx={{ mr: 2 }}
+              >
+                Test Markdown
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={retryGeneration}
+                disabled={loading}
+              >
+                Retry Generation
+              </Button>
+            </Box>
+          </Box>
+        )}
       </Box>
     </Box>
   );
