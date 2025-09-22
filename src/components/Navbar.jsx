@@ -7,13 +7,12 @@ export const Navbar = () => {
       <nav className="nav">
         <div className="rg">
           <Link to="/evolvex-documentation">Evolvex Docs</Link>
-          <Link to="/evolvex-rag-tool">Rag tool</Link>
+          <Link to="/evolvex-blockchain">Freelance</Link>
         </div>
         <Link to="/">
           <h1 className="logo">Evolvex</h1>
         </Link>
         <div className="lg">
-          <Link to="/evolvex-blockchain">Freelance</Link>
           <Link to="/evolvex-code-agentic-ai">Developer</Link>
           <Link to="/evolvex-business-agentic-ai">Business</Link>
         </div>

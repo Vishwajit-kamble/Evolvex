@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document Q&A System</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="file"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .response { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 4px; }
+        .flash-messages { margin-bottom: 20px; }
+        .flash-message { padding: 10px; margin-bottom: 10px; border-radius: 4px; background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>Document Q&A System</h1>
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <form method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="csv_file">Upload CSV File:</label>
+            <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="pdf_file">Upload PDF File:</label>
+            <input type="file" id="pdf_file" name="pdf_file" accept=".pdf" required>
+        </div>
+        
+        <button type="submit">Upload Files</button>
+    </form>
+
+    <hr>
+
+    <form method="post">
+        <div class="form-group">
+            <label for="query">Ask a Question:</label>
+            <textarea id="query" name="query" rows="3" placeholder="Enter your question about the documents..."></textarea>
+        </div>
+        <button type="submit">Submit Query</button>
+    </form>
+
+    {% if response %}
+        <div class="response">
+            <h3>Response:</h3>
+            <p>{{ response }}</p>
+        </div>
+    {% endif %}
+</body>
+</html>

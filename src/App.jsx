@@ -110,14 +110,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/evolvex-rag-tool"
-            element={
-              <ProtectedRoute>
-                <Rag />
-              </ProtectedRoute>
-            }
-          />
+          
           <Route
             path="/evolvex-blockchain"
             element={
